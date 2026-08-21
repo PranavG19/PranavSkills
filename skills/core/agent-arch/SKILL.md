@@ -1,11 +1,16 @@
 ---
 name: agent-arch
-description: Architect codebases that AI agents build and maintain. Use when choosing an architecture style, setting up structural guardrails, reviewing an architecture for agent-legibility, or deciding where to enforce a safety property like auth or tenancy.
+description: Architect codebases and harnesses for AI agents. Use when choosing architecture, writing an agent context file, configuring hooks or permissions, setting up verification gates, or reviewing agent-legibility and safety boundaries.
 ---
 
-`agent-arch → apply the 5 rules → make unsafe states unrepresentable → verify from an independent vantage → load the knowledge file for the specific axis`
+`agent-arch → choose codebase or harness → apply the 5 rules → make unsafe states unrepresentable → verify independently → load one matching reference`
 
 A **router and decision core**, not a knowledge base — itself an application of the rule that a project's agent context file is a router. Distilled from a 40-axis research program (map → adversarial review → roundtable → synthesis); the universal model lives here, and per-area detail loads JIT from `knowledge/agent-arch/` when the task touches that area. Load only the file matching the axis in front of you — pulling all of them up front spends the context budget the router exists to protect.
+
+For an agentic-coding setup rather than application architecture, load
+`knowledge/agent-arch/harness.md`. Use its baseline to audit or create the project's agent context
+file, hooks, permissions, isolation, verification ladder, and CI gates. Adapt commands to the
+repository's actual stack; preserve the control objective.
 
 ## The model: Oracle Architecture
 
@@ -73,6 +78,7 @@ Each file condenses the *core principles* of its axes (the adversarial reviews, 
 
 | Load this | When the decision is about |
 |---|---|
+| `knowledge/agent-arch/harness.md` | Setting up an agentic coding environment: project context files, skills/docs routing, hooks, permissions, worktrees, CI/branch protection, stop behavior, and verification tiers |
 | `knowledge/agent-arch/architecture-styles.md` | Choosing/shaping the base structure: modular monolith, monorepo vs polyrepo topology, vertical-slice, hexagonal/ports-and-adapters, event-driven, serverless/FaaS |
 | `knowledge/agent-arch/verification.md` | Language & type-system choice, test & verification signal, test infrastructure at scale, observability-driven development |
 | `knowledge/agent-arch/runtime-operations.md` | Observability & runtime signals, agent utilization & operations, post-deploy incident participation, logging/audit/compliance, cost optimization for agent usage |

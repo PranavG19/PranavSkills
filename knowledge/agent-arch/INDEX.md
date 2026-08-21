@@ -1,8 +1,9 @@
 # agent-arch
 
-Architecture decisions for codebases that AI agents build and maintain — eight files condensing
-axes 01–39 of a research program (map → adversarial review → roundtable → synthesis). The domain's
-own scope statement, from the `agent-arch` skill that routes it:
+Architecture and harness decisions for codebases that AI agents build and maintain — one practical
+harness guide plus eight files condensing axes 01–39 of a research program (map → adversarial
+review → roundtable → synthesis). The domain's own scope statement, from the `agent-arch` skill
+that routes it:
 
 > Each file condenses the *core principles* of its axes (the adversarial reviews, roundtables, and
 > open questions from the source guide are deliberately dropped).
@@ -19,6 +20,7 @@ reviews and open questions are not in this repo at all.
 
 | name | path | answers |
 |---|---|---|
+| harness | `harness.md` | How to configure an agentic coding environment without coupling it to one tech stack: what belongs in the project context file, which controls belong in branch protection vs permissions vs hooks, the minimum pre/post/stop-hook behavior, worktree isolation limits, a risk-based verification ladder, fresh-context review, and the audit proving the setup is actually wired. |
 | architecture-styles | `architecture-styles.md` (35 KB, axes 01–06) | Which base structure to commit to and what each costs an agent navigating it: why the modular monolith is the default *end state* rather than a way-station; the two substrate preconditions (HEAD-fresh server-side dependency graph, host-enforced trust root) that decide monorepo vs polyrepo, with fan-in thresholds as the partition rule; when vertical slices are safe (use-case-shaped, invariant-poor) vs when they manufacture N-way invariant incidents; the two-condition test a hexagonal port must pass to exist at all; what an event must prove to earn async over sync-plus-transactional; and why fine-grained FaaS is a don't-by-default. |
 | verification | `verification.md` (20 KB, axes 07–10) | What a green signal is actually allowed to license: which toolchain *configuration* (not which language) makes an agent safe and how to gate escape-hatch delta at zero; why a typecheck certifies shape and never intent; where a test's expected value must come from so it isn't a mirror oracle (round-trip, metamorphic, differential, hand-written spec literal); why red-first is the one gate a green-optimizing agent cannot self-satisfy; the change-class ladder from typecheck-only up to mutation-on-diff; how to build a sub-5s tiered inner loop; and why the deploying entity must not define its own success threshold. |
 | runtime-operations | `runtime-operations.md` (21 KB, axes 11–15) | What an agent may trust and do at runtime: why an SLI must come from a vantage the emitting code cannot write, and why the edge alone still misses the fast-empty-200 swallow hole; how to size the always-loaded rule spine (~3000 tokens) and prefer server-side physics over prose guardrails; what an agent may do during an incident it may have caused (read-only phase, one autonomous action, credential absence over policy, platform-owned attribution); how to make audit a database invariant rather than a code convention; and how to measure agent cost per *correct outcome* instead of per invocation. |
@@ -28,6 +30,7 @@ reviews and open questions are not in this repo at all.
 | security-tenancy-trust | `security-tenancy-trust.md` (6 KB, axes 34–36) | Where to put a boundary the agent cannot write past — self-described as the canonical home of Rule 2: two-layer authorization (Postgres RLS with FORCE for tenant isolation, an externalized engine for per-action policy) and why positive-path tests never touch the security boundary; why connection-level tenant binding must be the primary boundary, because RLS prevents a forgotten `WHERE` (omission) but not wrong-tenant *confusion*; when to graduate from POOL to bridge or silo; and how to scope an agent's own permissions — guard effects not tools, two tiers only, enforcement outside the agent's write perimeter. |
 | knowledge-migration | `knowledge-migration.md` (6 KB, axes 37–39) | How agents find the *why*, coordinate with each other, and eat a legacy system: what minimum effective documentation is (always-loaded guardrails ≤500 tokens vs JIT orientation, inline ADR pointers at the decision site, and the rule that a doc must prevent a specific error class or be deleted); why the merge queue is the only coordinator worth having, given that predicted write-sets are wrong over 40% of the time; and how to strangle a legacy system by entity-partition routing with one authoritative writer per entity, deletion before migration, and a shutdown-date ratchet. |
 
-The three small files (`apis-frontend-resilience`, `security-tenancy-trust`,
+The harness guide is the practical starting point for setup work. The three small research files
+(`apis-frontend-resilience`, `security-tenancy-trust`,
 `knowledge-migration`) load cheaply; `architecture-styles` and `build-supply-config` are 4–5×
 larger and are worth delegating to a subagent if you need more than one section.
