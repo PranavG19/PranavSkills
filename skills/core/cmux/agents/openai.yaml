@@ -1,0 +1,4 @@
+interface:
+  display_name: "cmux"
+  short_description: "Control cmux workspaces and interactive surfaces"
+  default_prompt: "Use $cmux to operate the relevant cmux workspace or surface."

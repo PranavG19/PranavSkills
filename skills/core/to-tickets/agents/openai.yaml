@@ -1,0 +1,4 @@
+interface:
+  display_name: "To Tickets"
+  short_description: "Turn a spec into local vertical-slice tickets"
+  default_prompt: "Use $to-tickets to turn this spec into a local ticket board."

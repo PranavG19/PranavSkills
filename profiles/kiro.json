@@ -1,0 +1,16 @@
+{
+  "$comment": "Kiro shares its skills directory with managed packages; preserve real directories.",
+  "kind": "kiro",
+  "target": "~/.kiro",
+  "sharedTarget": true,
+  "buckets": [
+    "core"
+  ],
+  "knowledge": [
+    "agent-arch"
+  ],
+  "context": [
+    "AGENTS.md"
+  ],
+  "hooks": []
+}

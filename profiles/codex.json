@@ -1,0 +1,15 @@
+{
+  "$comment": "Generic Codex profile.",
+  "kind": "codex",
+  "target": "~/.codex",
+  "buckets": [
+    "core"
+  ],
+  "knowledge": [
+    "agent-arch"
+  ],
+  "context": [
+    "AGENTS.md"
+  ],
+  "hooks": []
+}

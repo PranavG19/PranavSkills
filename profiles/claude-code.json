@@ -1,0 +1,15 @@
+{
+  "$comment": "Generic Claude Code profile.",
+  "kind": "claude",
+  "target": "~/.claude",
+  "buckets": [
+    "core"
+  ],
+  "knowledge": [
+    "agent-arch"
+  ],
+  "context": [
+    "AGENTS.md"
+  ],
+  "hooks": []
+}
