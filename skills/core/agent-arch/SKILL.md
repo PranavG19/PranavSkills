@@ -1,11 +1,11 @@
 ---
 name: agent-arch
-description: Architect codebases and harnesses for AI agents. Use when choosing architecture, writing an agent context file, configuring hooks or permissions, setting up verification gates, or reviewing agent-legibility and safety boundaries.
+description: Architect codebases and harnesses AI agents build and maintain. Use when choosing an architecture style, enforcing a safety boundary (auth, tenancy, secrets, migrations, API contracts), setting up an agent context file, hooks, permissions, or verification gates, or reviewing agent-legibility.
 ---
 
 `agent-arch → choose codebase or harness → apply the 5 rules → make unsafe states unrepresentable → verify independently → load one matching reference`
 
-A **router and decision core**, not a knowledge base — itself an application of the rule that a project's agent context file is a router. Distilled from a 40-axis research program (map → adversarial review → roundtable → synthesis); the universal model lives here, and per-area detail loads JIT from `knowledge/agent-arch/` when the task touches that area. Load only the file matching the axis in front of you — pulling all of them up front spends the context budget the router exists to protect.
+A **router and decision core**, not a knowledge base — itself an application of the rule that a project's agent context file is a router. Distilled from a 39-axis research program (map → adversarial review → roundtable → synthesis); the universal model lives here, and per-area detail loads JIT from `knowledge/agent-arch/` when the task touches that area. Load only the file matching the axis in front of you — pulling all of them up front spends the context budget the router exists to protect.
 
 For an agentic-coding setup rather than application architecture, load
 `knowledge/agent-arch/harness.md`. Use its baseline to audit or create the project's agent context

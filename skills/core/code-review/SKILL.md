@@ -17,9 +17,13 @@ description: Review one implemented ticket from a fresh context against its acce
    - **Standards reviewer:** trace modified call paths and compare the diff with repository rules,
      named exemplars, tests, and surrounding conventions. Flag regressions, unsafe boundaries,
      missing failure handling, unnecessary complexity, and implementation-coupled tests.
-4. **Verify candidates.** Re-read each cited location and authority. Re-run focused checks when
-   useful. Remove findings about unchanged code, nonexistent symbols, preferences not backed by a
-   rule, or behavior disproved elsewhere in the diff.
+4. **Verify candidates.** Re-read each cited location and authority. For any finding on a critical
+   path, re-run a focused check — a re-read proves you pointed at the line, not that the bug is
+   real. Grade each finding by where its evidence lands: (1) asserted, (2) you pointed at the line,
+   (3) you showed the bad case can't happen, (4) you ran a check that fails loud if wrong, (5) you
+   reproduced it. Rung 4 is the bar for a blocking finding; below it, mark the finding's certainty.
+   Remove findings about unchanged code, nonexistent symbols, preferences not backed by a rule, or
+   behavior disproved elsewhere in the diff.
 5. **Report the axes separately.** Under `Spec` and `Standards`, rank actionable findings by
    severity with file/line, trigger, consequence, and judging criterion or rule. Do not let one
    clean axis hide a failure in the other.

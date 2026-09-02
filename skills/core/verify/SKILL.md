@@ -29,13 +29,27 @@ Sibling skills sit elsewhere: `critiquing` runs a design-time panel on the same 
    - **Critical path** (money, auth, data, irreversible): the above **plus mutation testing on changed lines** as a sensitivity check (gate: zero new survivors) **plus** an outside-in signal if it ships to prod (canary on edge SLI).
 
 3. **Prove sensitivity red-first.** Run the new/changed test against the *parent* state and confirm
-   it fails, then confirm it passes on the new code. A test green on both proves nothing about the
+   it fails — and fails for the intended reason, not an unrelated error (import, typo, wrong
+   fixture) — then confirm it passes on the new code. A test green on both proves nothing about the
    change. For a new feature, temporarily break the implementation and confirm the test catches
    it. This proves the test observes the change; it does not make its expected value independent.
 
 4. **Confirm the assertion actually ran.** An assertion-free or guarded test (`if (cond) expect(...)` where `cond` is false on the failing input) reaches green while verifying nothing. Make "did the assertion fire" a measured number (`expect.assertions(N)` or equivalent) rather than an eyeball.
 
 5. **Watch for the swallow.** Code that catches an error and returns a success value (a 2xx, a default) makes its own success signal a lie. Verify against what the *caller/edge* observed, and add a distinct failure counter that a test forces to move.
+
+## How sure are you — the certainty ladder
+
+Grade every safety-relevant claim by where its evidence lands, and state the rung out loud:
+
+1. **You said so** — an assertion. Worthless on its own.
+2. **You pointed at the line** — you read the code that makes it true.
+3. **You showed the bad case can't happen** — you reasoned it through structurally.
+4. **You ran a check that fails loud if you're wrong** — the bar for "proven."
+5. **You reproduced it in the running app** — the strongest rung.
+
+Rung 4 is the bar. Any fact you can't get to rung 4, say so explicitly rather than letting a
+rung-1 claim read as settled.
 
 ## Feature gauntlet
 

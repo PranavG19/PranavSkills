@@ -36,9 +36,11 @@ observes; each project orchestrator owns its own `orchestrate` pipeline and loca
    to `done` only after that integration remains green.
 9. **Report by exception.** Surface decisions, conflicts, failed gates, stalled sessions, and
    completed user-visible slices. Keep routine progress in cmux status rather than flooding the
-   conversation.
+   conversation. A step you skip stays on the board with a one-line reason; "by exception" governs
+   what you report, not which steps you run.
 10. **Return taste to the human.** Human QA judges the integrated product and creates follow-up
-    tickets. Pushing or production mutation remains a human action unless explicitly delegated.
+    tickets. Pushing or production mutation remains a human action; treat it as delegated only on an
+    explicit, logged instruction.
 
 ## Recovery
 

@@ -31,8 +31,8 @@ For changed animation or transition behavior:
 
 Use the available simulator or real device. Cover the supported orientation, appearance, text
 size, safe areas, keyboard opening/dismissal, background/resume, and permission states touched by
-the feature. Prefer cmux's simulator surface when visible takeover is useful; keep its stable
-surface ref with the evidence.
+the feature. Prefer your environment's simulator/device surface when visible takeover helps; keep
+its stable surface ref with the evidence.
 
 ## Evidence
 

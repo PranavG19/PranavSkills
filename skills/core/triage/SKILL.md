@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Classify a change by reversibility and blast radius before doing it — reversible ships fast, irreversible stops for a human. Use before touching data, money, credentials, infra, or contracts; when unsure something is safe autonomously; or as `orchestrate`'s first gate.
+description: Classify a change by reversibility and blast radius before doing it. Use before touching data, money, credentials, infra, or contracts; when unsure something is safe autonomously; or as `orchestrate`'s first gate.
 ---
 
 `triage → classify reversible vs irreversible → check the 3 escalation domains → route (ship fast | stop for human) → name the blast radius`

@@ -1,6 +1,6 @@
 ---
 name: to-tickets
-description: Turn a settled spec into a dependency-aware local board of vertical-slice tickets. Use when work needs splitting across fresh sessions or parallel agents, or when managing `.agents/tickets/`.
+description: Turn a settled spec into a dependency-aware local board of vertical-slice tickets. Use when a spec is settled and work needs splitting across fresh sessions or parallel agents, or when managing `.agents/tickets/`.
 ---
 
 `spec -> vertical slices -> dependency DAG -> validate board -> human checks the shape -> fresh session per ticket`
@@ -29,17 +29,9 @@ bundled `scripts/tickets.mjs` derives board state and serializes claims.
 
 ## Manage the board
 
-```bash
-node <this-skill>/scripts/tickets.mjs --dir <board> list
-node <this-skill>/scripts/tickets.mjs --dir <board> ready
-node <this-skill>/scripts/tickets.mjs --dir <board> show T-001
-node <this-skill>/scripts/tickets.mjs --dir <board> claim T-001 --by <agent>
-node <this-skill>/scripts/tickets.mjs --dir <board> move T-001 review
-node <this-skill>/scripts/tickets.mjs --dir <board> move T-001 approved
-node <this-skill>/scripts/tickets.mjs --dir <board> move T-001 done
-```
-
-Use `--json` on `list` or `ready` for machine-readable output. A claim is atomic on one filesystem;
+Run `node <this-skill>/scripts/tickets.mjs --dir <board> <cmd>` — subcommands `init`, `list`,
+`ready`, `show`, `claim`, `move`; pass `--help` for exact syntax rather than restating it here. Add
+`--json` to `list`/`ready` for machine-readable output. A claim is atomic on one filesystem;
 worktrees isolate code, while the shared board coordinates ownership.
 
 ## Board lifecycle

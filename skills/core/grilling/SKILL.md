@@ -1,6 +1,6 @@
 ---
 name: grilling
-description: Interview the user one question at a time until every design decision is resolved, then hand off to `spec`. Use when a design has unresolved forks, or when a plan needs stress-testing.
+description: Interview the user one question at a time, each with a recommended answer, until every design decision is resolved. Use before building anything non-trivial, when a plan needs stress-testing, or when the user says "grill me".
 ---
 
 `grill → resolve the design tree one Q at a time (each with a recommended answer) → probe the hard concerns to real depth → hand off to spec`

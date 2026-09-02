@@ -10,9 +10,10 @@ description: Build one observable behavior at a time through red-green-refactor.
    and resolve it before writing tests.
 2. **Write one test.** Express one behavior from the acceptance criterion using a spec literal,
    worked example, invariant, or other expected value independent of the implementation.
-3. **Prove red.** Run the focused test against the parent behavior. Record the expected failure.
-   A new capability with no parent behavior may use a temporary intentional break to prove the
-   assertion observes the seam.
+3. **Prove red.** Run the focused test against the parent behavior. Confirm it fails for the
+   intended reason — the missing behavior, not an import error, typo, or unrelated fixture. A red
+   for the wrong reason proves nothing. A new capability with no parent behavior may use a temporary
+   intentional break to prove the assertion observes the seam.
 4. **Reach green.** Add only enough production code to pass this test. Do not anticipate later
    cases.
 5. **Refactor while green.** Improve names and remove duplication without changing behavior. Run
@@ -31,3 +32,6 @@ network, or another system boundary.
 - Keep one red-green cycle small enough to diagnose from one failure.
 - A test changed merely to agree with new output is still red until the spec justifies the change.
 - Run focused tests during the loop; typecheck regularly; leave the full suite to the ticket gate.
+- Prefer no new test over a bad test — one that mostly exercises mocks, encodes current
+  implementation details, or would be deleted right after proving the change. When the only
+  reachable test is bad, use a scripted or manual check and say so.

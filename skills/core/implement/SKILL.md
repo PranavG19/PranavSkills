@@ -21,7 +21,9 @@ description: Implement exactly one local ticket through a red-green-refactor loo
    required suite once at the end. Preserve exit codes and record skipped checks honestly.
 7. **Prove critical claims.** Invoke `verify` for money, authentication, data, subtle invariants,
    or any claim whose expected value came from the implementation itself. Invoke `browser` for an
-   observable UI acceptance criterion.
+   observable UI acceptance criterion. A test you wrote and graded green is not proof of the thing
+   it tests; if you judge a claim non-critical and skip `verify`, record that skip and its reason in
+   the ticket.
 8. **Hand off.** Move the ticket to `review`, summarize the diff and evidence in the ticket, and
     stop. Review runs in a fresh context through `code-review`; do not self-approve.
 

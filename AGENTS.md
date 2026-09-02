@@ -60,6 +60,9 @@ Make the code satisfy the test; changing a test merely to make it pass proves no
 Report what actually happened. Include useful failure output, call skipped checks skipped, and say
 when something remains uncertain.
 
+When you cite a rule or skill as the reason for a choice, name the specific decision it changed. A
+citation with no decision behind it is name-dropping, not application.
+
 ## Match the codebase
 
 The local style wins. When the codebase has no opinion, prefer `const` unless reassignment is real,

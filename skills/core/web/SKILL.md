@@ -1,6 +1,6 @@
 ---
 name: web
-description: Fast targeted lookup of current external facts — library docs, API references, framework changes, error messages, releases. Use before stating a version-specific fact you're unsure of, before guessing about an external tool, or on anything past the knowledge cutoff.
+description: Fast targeted lookup of current external facts — library/API docs, framework changes, releases, error messages. Use before asserting a version-specific or post-cutoff fact you're unsure of, when guessing at an external tool's API, or to decode an unfamiliar error.
 ---
 
 Guessing at library APIs is a top source of wrong code, so reach for this the moment you're about to state a version-specific or post-cutoff fact you aren't certain of.

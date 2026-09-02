@@ -1,6 +1,6 @@
 ---
 name: worktree
-description: Create an isolated git worktree so a task can't disturb the main checkout. Use before a risky change, when running parallel work streams on one repo, or before an unattended agent run.
+description: Create an isolated git worktree that keeps work off the main checkout. Use before a risky change, when running parallel work streams on one repo, or before an unattended agent run.
 ---
 
 ## Create (from inside the repo)
