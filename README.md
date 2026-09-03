@@ -10,6 +10,9 @@ for taste and irreversible decisions.
 One source tree renders the same skills and working agreement into **Claude Code**, **Codex**, and
 **Kiro**. The skills are harness-neutral; the profiles handle installation details.
 
+New here? Open [`docs/overview.html`](docs/overview.html) for a self-contained walkthrough of what
+this toolkit is, how it works, and how to use it.
+
 ## Philosophy
 
 The model matters less than the environment around it. Good results come from a clear task,
@@ -53,6 +56,7 @@ not a long plan that one session must remember.
 | Shape | [`grilling`](skills/core/grilling/SKILL.md) | Interview through unresolved design forks, one question at a time. |
 | Shape | [`critiquing`](skills/core/critiquing/SKILL.md) | Ideate, stress-test, or red-team a design, plan, spec, or consequential diff. |
 | Shape | [`spec`](skills/core/spec/SKILL.md) | Record settled decisions in an implementation-ready design. |
+| Shape | [`change-contract`](skills/core/change-contract/SKILL.md) | Freeze the success criterion, non-goals, and diff budget for a single scoped fix that ships on its own. |
 | Plan | [`to-tickets`](skills/core/to-tickets/SKILL.md) | Turn a spec into dependency-aware, independently reviewable vertical slices. |
 | Run | [`orchestrate`](skills/core/orchestrate/SKILL.md) | Move substantial work through shaping, tickets, implementation, review, and QA. |
 | Run | [`supervise`](skills/core/supervise/SKILL.md) | Coordinate multiple project orchestrators without collapsing their boundaries. |
@@ -65,7 +69,12 @@ not a long plan that one session must remember.
 | UI | [`browser`](skills/core/browser/SKILL.md) | Exercise a real interface and inspect interactions, screenshots, responsive states, console, and network behavior. |
 | Quality | [`verify`](skills/core/verify/SKILL.md) | Select a risk-based test gauntlet and prove a claim with an independent signal. |
 | Quality | [`code-review`](skills/core/code-review/SKILL.md) | Review a completed ticket from a fresh context against both its spec and repository standards. |
+| Quality | [`diff-review`](skills/core/diff-review/SKILL.md) | Read-only blocker review of a change you do not own, with no local ticket, refuting the author's claims. |
+| Explain | [`show-me`](skills/core/show-me/SKILL.md) | Explain with the smallest fitting visual (tree, diagram, shape-matched diff) instead of a wall of prose. |
 | Architecture | [`agent-arch`](skills/core/agent-arch/SKILL.md) | Design agent-legible codebases, context files, hooks, permissions, and verification gates. |
+| Incident | [`postmortem`](skills/core/postmortem/SKILL.md) | Draft a postmortem, RCA, or incident retro from a confirmed root cause. |
+| Continuity | [`handoff`](skills/core/handoff/SKILL.md) | Write a resumable record when stopping mid-task, so the next session reads state instead of re-deriving it. |
+| Continuity | [`resolving-merge-conflicts`](skills/core/resolving-merge-conflicts/SKILL.md) | Resolve a conflict by recovering each side's intent, not by stitching markers together. |
 | Memory | [`learn`](skills/core/learn/SKILL.md) | Promote a surprising, corroborated lesson to its durable owner. |
 | Git | [`commit`](skills/core/commit/SKILL.md) | Create a scoped local commit after verification; pushing remains a human action. |
 
@@ -77,6 +86,10 @@ not a long plan that one session must remember.
 | Unknown bug | `investigate -> tdd -> verify -> code-review` |
 | New feature | `grilling -> spec -> to-tickets -> orchestrate` |
 | Greenfield project | `grilling -> spec -> agent-arch -> to-tickets -> orchestrate` |
+| Scoped fix that ships on its own | `triage -> change-contract -> implement -> verify -> commit` |
+| Reviewing someone else's change | `diff-review` (read-only, refute the claims, report blockers) |
+| After an incident is understood | `investigate -> postmortem` |
+| Stopping mid-task, or resuming | `handoff` (write on stop, read first on resume) |
 | UI or mobile work | Add `browser` and the visual/device tier from `verify` |
 | Several projects at once | `supervise -> cmux -> one orchestrate session per project` |
 
