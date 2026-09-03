@@ -7,8 +7,8 @@ repeatable workflow: understand the problem, make decisions explicit, split work
 vertical slices, implement test-first, review from a fresh context, and keep a human responsible
 for taste and irreversible decisions.
 
-One source tree renders the same skills and working agreement into **Claude Code**, **Codex**, and
-**Kiro**. The skills are harness-neutral; the profiles handle installation details.
+One source tree renders the same skills and working agreement into **Claude Code**, **Codex**,
+**Kiro**, and **pi**. The skills are harness-neutral; the profiles handle installation details.
 
 New here? Open [`docs/overview.html`](docs/overview.html) for a self-contained walkthrough of what
 this toolkit is, how it works, and how to use it.
@@ -107,6 +107,7 @@ files are generated because each harness loads them differently.
 | Claude Code | `~/.claude` | Symlinks into `skills/` and `knowledge/` | `CLAUDE.md` imports this repository's `AGENTS.md` |
 | Codex | `~/.codex` | Symlinks into `skills/` and `knowledge/` | `AGENTS.md` contains the rendered working agreement |
 | Kiro | `~/.kiro` | Adds owned symlinks while preserving Kiro-managed real directories and external links | `AGENTS.md` contains the rendered working agreement |
+| pi | `~/.pi/agent` | Adds owned symlinks alongside pi's own skill links; a name already taken (e.g. `cmux`) is skipped, never overwritten | `AGENTS.md` at `~/.pi/agent/AGENTS.md` contains the rendered working agreement |
 
 ```text
 PranavSkills/
@@ -136,6 +137,7 @@ cd PranavSkills
 cat profiles/claude-code.json
 cat profiles/codex.json
 cat profiles/kiro.json
+cat profiles/pi.json
 
 # Preview, render all profiles, then validate the installation.
 node scripts/render.mjs --dry-run
@@ -149,6 +151,7 @@ Render only one profile:
 node scripts/render.mjs codex
 node scripts/render.mjs claude-code
 node scripts/render.mjs kiro
+node scripts/render.mjs pi
 ```
 
 ### Before rendering
@@ -159,6 +162,7 @@ However, it **generates the target context file**:
 - `~/.claude/CLAUDE.md`
 - `~/.codex/AGENTS.md`
 - `~/.kiro/AGENTS.md`
+- `~/.pi/agent/AGENTS.md`
 
 Read `scripts/render.mjs`, back up any existing context file, and merge personal instructions into
 this repository's `AGENTS.md` before rendering. Run `--dry-run` first.

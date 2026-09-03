@@ -1,0 +1,16 @@
+{
+  "$comment": "Generic pi (pi-coding-agent) profile. Skills load from ~/.pi/agent/skills and global context from ~/.pi/agent/AGENTS.md. sharedTarget preserves foreign skill symlinks already there (e.g. links into ~/.agents/skills), so a name clash is skipped, never overwritten.",
+  "kind": "pi",
+  "target": "~/.pi/agent",
+  "sharedTarget": true,
+  "buckets": [
+    "core"
+  ],
+  "knowledge": [
+    "agent-arch"
+  ],
+  "context": [
+    "AGENTS.md"
+  ],
+  "hooks": []
+}

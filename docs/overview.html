@@ -89,7 +89,7 @@
 <section id="what">
   <div class="kicker">Overview</div>
   <h1>A software factory for coding agents</h1>
-  <p class="lede">PranavSkills is a small, opinionated toolkit that turns a coding agent from a fast guesser into a disciplined engineer. It is a set of composable <b>skills</b> (short procedures the agent loads only when a trigger fires) arranged on one workflow spine, rendered from a single source into Claude Code, Codex, and Kiro. The bet is simple. The model matters less than the environment around it. Give the agent a clear task, legible code, short feedback loops, verification it cannot fake, and controls it cannot silently rewrite, and it produces work you can actually maintain.</p>
+  <p class="lede">PranavSkills is a small, opinionated toolkit that turns a coding agent from a fast guesser into a disciplined engineer. It is a set of composable <b>skills</b> (short procedures the agent loads only when a trigger fires) arranged on one workflow spine, rendered from a single source into Claude Code, Codex, Kiro, and pi. The bet is simple. The model matters less than the environment around it. Give the agent a clear task, legible code, short feedback loops, verification it cannot fake, and controls it cannot silently rewrite, and it produces work you can actually maintain.</p>
   <div class="grid3" style="margin-top:20px">
     <div class="card tin"><h3>What you get</h3><p class="muted">25 focused skills on a plan-first spine, a JIT architecture knowledge base, and a linter that keeps the whole thing honest.</p></div>
     <div class="card tin"><h3>Who it is for</h3><p class="muted">Anyone keeping real software alive with agents, where a misunderstanding is expensive and code has to stay changeable for months.</p></div>
@@ -218,7 +218,7 @@
     <tr><td><code>skills/core/</code></td><td>The harness-neutral skills. One directory each, a short body with a trigger description.</td></tr>
     <tr><td><code>skills/_shared/</code></td><td>Reusable formats and templates (spec templates, the change contract, the tracker format).</td></tr>
     <tr><td><code>knowledge/agent-arch/</code></td><td>A just-in-time architecture and harness knowledge base, loaded per topic through an index, not all at once.</td></tr>
-    <tr><td><code>profiles/</code></td><td>Per-harness targets and selections for Claude Code, Codex, and Kiro.</td></tr>
+    <tr><td><code>profiles/</code></td><td>Per-harness targets and selections for Claude Code, Codex, Kiro, and pi.</td></tr>
     <tr><td><code>scripts/render.mjs</code></td><td>Installs a profile by symlink. It refuses to overwrite real directories and only retracts links it owns, so it never deletes your data.</td></tr>
     <tr><td><code>scripts/doctor.mjs</code></td><td>Lints every skill. Four-key frontmatter, a 40-word ceiling on descriptions, triggers that fire, no harness names in shared bodies, a plain-writing check, and an aggregate context budget.</td></tr>
   </table>

@@ -126,9 +126,16 @@ for (const f of readdirSync(join(ROOT, "profiles")).filter((f) => f.endsWith(".j
   }
   for (const [skill, expected] of expectedSkills) {
     const rendered = join(skillsDir, skill);
-    if (!isLink(rendered) || realpathSafe(rendered) !== expected) {
-      fail(f, `${rendered} does not point to the selected repository skill`);
+    if (isLink(rendered) && realpathSafe(rendered) === expected) continue;
+    // On a shared target, a skill name already held by a foreign entry (a symlink out of the repo,
+    // or a harness-managed real directory) is skipped by render, never overwritten. That is a name
+    // collision to report, not a broken render. A missing or broken link is still a failure.
+    const rp = realpathSafe(rendered);
+    if (p.sharedTarget && existsSync(rendered) && (rp === null || !rp.startsWith(ROOT))) {
+      warn(f, `${skill} is held by a foreign skill at ${rendered}; the repository's ${skill} is not installed here (name collision)`);
+      continue;
     }
+    fail(f, `${rendered} does not point to the selected repository skill`);
   }
   // Amazon isolation: the personal profile must not reach internal material.
   if (/personal/.test(f)) {
