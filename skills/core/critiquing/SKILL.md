@@ -1,6 +1,6 @@
 ---
 name: critiquing
-description: Stress or expand an artifact through independent subagents. Use when ideating, red-teaming, seeking expert perspectives, or validating a design, spec, plan, or consequential diff.
+description: Use when ideating, red-teaming, or seeking expert sign-off on a design, spec, plan, or decision before committing to it. Runs a panel of independent subagents over the artifact. A diff's blocker pass is diff-review's job.
 ---
 
 `frame artifact → pick mode + N named angles → dispatch in parallel (≤8 findings each) → verify (CONFIRMED/PLAUSIBLE/REFUTED) → sweep for gaps → ranked report`

@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Write a resumable handoff artifact when stopping mid-task. Durable state, open decisions, the single next action, cited paths and SHAs, secrets redacted. Use before a context boundary or end of day; on resume, read the latest handoff before acting.
+description: Use when stopping mid-task, before a context boundary or end of day; on resume, read the latest handoff first. Writes durable in-flight state and the single next action to a file (not a durable lesson, which is learn).
 ---
 
 `handoff → write durable state to a file → name the single next action → cite paths and SHAs → redact secrets → on resume, read it first`

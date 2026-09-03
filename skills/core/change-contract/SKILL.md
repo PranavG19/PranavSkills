@@ -1,6 +1,6 @@
 ---
 name: change-contract
-description: Pin a surgical change's frozen contract before building. Literal success criterion, non-goals, diff budget, required authorities, base identity, then render its submission writeup. Use before a scoped fix on a shared package, or when writing a CR/PR description.
+description: Use before a scoped, unticketed fix on a shared package, or when writing a CR/PR description. Freezes the change's success criterion, non-goals, and diff budget before the first edit, then reuses it as the writeup. Whole features are spec's job.
 ---
 
 `change-contract → freeze the requirement card → stamp the artifact epoch → build inside the budget → render the submission writeup`

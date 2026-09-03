@@ -1,6 +1,6 @@
 ---
 name: show-me
-description: Explain the current topic with the smallest fitting visual, from pseudocode and call, file, or component trees to Mermaid, a shape-matched diff, or one focused HTML artifact. Use when a change or design lands better shown than described.
+description: Use when explaining structure, control flow, a refactor, or a change that reads clearer shown than told. Renders the smallest fitting visual (pseudocode, a call/file/component tree, Mermaid, a shape-matched diff, or one focused HTML artifact) beside one line of text.
 ---
 
 `show-me → pick the smallest visual that answers the question → put it beside one line of text → stop when the point lands`
