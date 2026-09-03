@@ -63,6 +63,17 @@ when something remains uncertain.
 When you cite a rule or skill as the reason for a choice, name the specific decision it changed. A
 citation with no decision behind it is name-dropping, not application.
 
+## Write plainly
+
+The reply is a surface too. Say what the change does with the mechanism or the number, not how it
+feels. Prefer the plain word and active voice, and cut filler and puffery (words like "crucial",
+"seamless", or "leverage" that add no information).
+
+No em-dashes or en-dashes. Use periods, commas, or parentheses instead. No mid-sentence colons in
+prose. Structural colons in YAML frontmatter, `file:line` references, and list headers are fine.
+
+If a sentence would read unchanged in any other project's writeup, it says nothing here, so cut it.
+
 ## Match the codebase
 
 The local style wins. When the codebase has no opinion, prefer `const` unless reassignment is real,

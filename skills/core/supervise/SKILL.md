@@ -49,7 +49,7 @@ observes; each project orchestrator owns its own `orchestrate` pipeline and loca
 - Stalled agent: read the exact surface, identify the missing context, capability, feedback,
   authority, or evidence, then supply that one thing or mark the ticket blocked.
 - Conflicting workers: stop the later claimant, preserve both worktrees, and return ownership to
-  one integration agent.
+  one integration agent. Resolve the actual merge conflict with `resolving-merge-conflicts`.
 - Failing integration: classify whether the branch, ordering, or shared contract caused it; reopen
   the smallest responsible ticket.
 

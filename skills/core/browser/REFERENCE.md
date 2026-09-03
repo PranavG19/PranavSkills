@@ -1,15 +1,15 @@
-# browser — long-tail reference
+# browser, long-tail reference
 
 Read the section for the branch you're on; `SKILL.md` carries everything every run needs.
 
 ## Attaching to the user's EXISTING authenticated Chrome
 
 When the task needs the user's *authenticated* session (SSO or another logged-in app), attach to their
-running Chrome instead of letting `agent-browser` spawn its own — a fresh spawn has no cookies and lands
+running Chrome instead of letting `agent-browser` spawn its own; a fresh spawn has no cookies and lands
 on a login page. The rules, each learned the hard way:
 
 1. **`agent-browser connect <port>` is the reliable attach.** `--cdp <port>` as a per-command flag is
-   not: subcommands like `tab new` ignored `--cdp 9333` and auto-launched on 9222 instead
+   not. Subcommands like `tab new` ignored `--cdp 9333` and auto-launched on 9222 instead
    ("Auto-launch failed: All CDP discovery methods failed for 127.0.0.1:9222"). Run `connect <port>`
    ONCE; afterwards plain `agent-browser tab/eval/open/...` (no `--cdp`) target that connection.
    When your harness runs shell commands through a PTY, run `connect <port>` with the PTY disabled
@@ -18,17 +18,17 @@ on a login page. The rules, each learned the hard way:
    the foreground workflow.
 2. **`curl http://127.0.0.1:<port>/json/version` returning HTTP 404 or empty ≠ dead port.** Chrome
    deliberately DISABLES the DevTools `/json` HTTP endpoint when `--remote-debugging-port` points at the
-   DEFAULT/real user-data-dir (security guard) — the socket still LISTENs but serves 404. curl probes
+   DEFAULT/real user-data-dir (security guard). The socket still LISTENs but serves 404. curl probes
    will mislead you into thinking the wrong port is live. Trust `agent-browser connect <port>` +
-   `agent-browser tab` over curl. Also: Chrome may bind CDP to `::1`/`localhost`, not `127.0.0.1`.
+   `agent-browser tab` over curl. Also, Chrome may bind CDP to `::1`/`localhost`, not `127.0.0.1`.
 3. **The port the user *thinks* they're on is a guess.** Verify by listing tabs after connect: the
    user's real browser shows their actual tabs (the corp intranet, a doc tool, the target app); a
-   spawned/phantom instance shows one blank or login tab. Observed once: 9222 had a listener that 404'd
-   while the real authenticated Chrome answered on a different port — and a totally different browser
+   spawned/phantom instance shows one blank or login tab. Observed once. 9222 had a listener that 404'd
+   while the real authenticated Chrome answered on a different port, and a totally different browser
    (Arc) was on 9333. Identify the right instance by its TAB LIST, not the port.
 4. **To get a debuggable authenticated Chrome from scratch:** the user launches normal Chrome (default
    profile, their cookies) and enables debugging, OR you launch with BOTH `--remote-debugging-port` AND
-   a **dedicated** `--user-data-dir` (e.g. `~/.chrome-agent-debug`) — the dedicated dir is what makes
+   a **dedicated** `--user-data-dir` (e.g. `~/.chrome-agent-debug`). The dedicated dir is what makes
    `/json` actually respond, but it starts cookie-less, so the user does SSO once inside it. You cannot
    complete a security-key auth; hand off that ONE step and poll for the post-login URL.
 5. **Expired-session tells:** landing on an SSO login page = expired cookie (needs a fresh key tap); an
@@ -48,7 +48,7 @@ the user may need to be asked for the exact same command several times. In that 
    that same session, and send `Ctrl-C` before starting another attempt.
 3. One `connect` at a time. Stacked stale attempts can release together when a turn is stopped, firing
    many Chrome approval prompts at once.
-4. Verify acceptance with a finite command — `agent-browser tab` — and confirm the actual authenticated
+4. Verify acceptance with a finite command, `agent-browser tab`, and confirm the actual authenticated
    tabs. `agent-browser --auto-connect tab` can falsely succeed against a blank agent-owned browser
    holding only `about:blank`; that is not proof the user's Chrome attached.
 
@@ -114,7 +114,7 @@ agent-browser find text "Sign In" click
 agent-browser find label "Email" fill "user@test.com"
 agent-browser find testid "my-button" click
 agent-browser find placeholder "Search" type "query"
-agent-browser click "#submit"          # raw CSS selector — last resort
+agent-browser click "#submit"          # raw CSS selector, last resort
 ```
 
 ## Iframes

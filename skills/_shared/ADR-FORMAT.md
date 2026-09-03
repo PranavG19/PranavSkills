@@ -3,9 +3,9 @@
 Architecture Decision Records live in `docs/adr/`, numbered (`0001-short-title.md`).
 
 Write an ADR **only when all three hold**:
-1. **Hard to reverse** — undoing it later is expensive.
-2. **Surprising without context** — a new reader would wonder "why on earth did they do this?"
-3. **The result of a real trade-off** — you chose one option over genuine alternatives.
+1. **Hard to reverse.** Undoing it later is expensive.
+2. **Surprising without context.** A new reader would wonder "why on earth did they do this?"
+3. **The result of a real trade-off.** You chose one option over genuine alternatives.
 
 If any one is missing, do not write an ADR. Most decisions don't need one.
 
@@ -19,7 +19,7 @@ Date: <YYYY-MM-DD>
 
 ## Context
 The forces at play: what's true about the system and the problem that made this
-decision necessary. State it neutrally — someone who disagrees with the outcome
+decision necessary. State it neutrally. Someone who disagrees with the outcome
 should still agree with the context.
 
 ## Decision

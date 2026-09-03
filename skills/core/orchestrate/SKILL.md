@@ -14,7 +14,7 @@ next context needs, and stops. A small direct change does not need this pipeline
 Before task-specific work, open a checklist whose first item is to run `triage` and read the skill
 governing the current stage; copy that stage's steps in verbatim before any task-specific items. A
 stage you deliberately skip stays in the list with a one-line reason and is recorded in the
-handoff — never dropped silently. In the reply, name each skill you invoked and the decision or
+handoff, never dropped silently. In the reply, name each skill you invoked and the decision or
 artifact it drove; a stage cited with no artifact behind it means you skipped it.
 
 ## Route the current stage

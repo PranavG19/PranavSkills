@@ -10,11 +10,11 @@ git worktree add ../<repo>-<branch> -b <branch>       # new branch
 git worktree add ../<repo>-<branch> <existing-branch> # existing branch
 ```
 
-Name the directory after the branch, so parallel trees stay distinguishable, and place it as a sibling of the repo — a nested worktree confuses tooling.
+Name the directory after the branch, so parallel trees stay distinguishable, and place it as a sibling of the repo. A nested worktree confuses tooling.
 
 ## Work
 
-- `cd` in — it's a full checkout sharing the same `.git`, with its own branch and index, so commits in one tree don't affect another. Give each parallel agent one worktree plus one branch so they never collide.
+- `cd` in. It's a full checkout sharing the same `.git`, with its own branch and index, so commits in one tree don't affect another. Give each parallel agent one worktree plus one branch so they never collide.
 - **One owner per file / symbol / shared config.** A worktree isolates the *filesystem*, but two streams both editing `package.json`, a lockfile, a migration sequence, or the same symbol still merge-conflict by hand. Split along non-overlapping paths and assign a single writer for anything shared, with others submitting intents to that owner. Overlapping writes erase the parallelism gain.
 
 ## Finish

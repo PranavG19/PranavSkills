@@ -19,6 +19,13 @@ bundled `scripts/tickets.mjs` derives board state and serializes claims.
 4. **Slice vertically.** Each ticket crosses the layers needed to produce one observable behavior.
    A schema-only, API-only, UI-only, or "add tests later" ticket is incomplete unless that artifact
    is independently usable.
+
+   **Horizontal changes are the exception.** A wide rename, cross-cutting migration, or interface
+   swap touching many call sites cannot be one green vertical slice. Sequence it expand, migrate,
+   contract. One additive, N/N-1-compatible ticket ships the new shape beside the old,
+   independently-shippable tickets migrate the callers, and a final human-gated ticket removes the
+   old shape. Each step is its own reversible ticket. Classify it via `triage`, and let `spec`'s
+   reversibility gate define the sequence.
 5. **Build the DAG.** Keep tickets within one fresh context. Set `depends-on` only for real
    prerequisites, `mode: afk` only when the ticket is reversible and has a deterministic check,
    and `status: ready` only when every dependency is already done; otherwise use `backlog`.
@@ -29,7 +36,7 @@ bundled `scripts/tickets.mjs` derives board state and serializes claims.
 
 ## Manage the board
 
-Run `node <this-skill>/scripts/tickets.mjs --dir <board> <cmd>` — subcommands `init`, `list`,
+Run `node <this-skill>/scripts/tickets.mjs --dir <board> <cmd>`. Subcommands are `init`, `list`,
 `ready`, `show`, `claim`, `move`; pass `--help` for exact syntax rather than restating it here. Add
 `--json` to `list`/`ready` for machine-readable output. A claim is atomic on one filesystem;
 worktrees isolate code, while the shared board coordinates ownership.

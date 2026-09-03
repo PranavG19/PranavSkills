@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ALLOWED = new Set(["name", "description", "disable-model-invocation", "argument-hint"]);
 const MAX_DESC_WORDS = 40;
+const MAX_TOTAL_DESC_WORDS = 730; // model-invoked descriptions load every session; soft ceiling with headroom for the gap-skills + show-me batch (baseline was 500 words across 16 model-invoked skills, now ~713 across ~20)
 const MAX_BODY_LINES = 120;
 const expand = (p) => (p.startsWith("~") ? join(homedir(), p.slice(1)) : p);
 const isLink = (p) => { try { return lstatSync(p).isSymbolicLink(); } catch { return false; } };
@@ -33,6 +34,7 @@ function parseFrontmatter(text) {
 
 // --- skills ---
 let count = 0;
+let modelInvokedDescWords = 0;
 for (const bucket of readdirSync(join(ROOT, "skills"))) {
   if (bucket.startsWith("_") || bucket.startsWith(".")) continue;
   const bucketPath = join(ROOT, "skills", bucket);
@@ -60,6 +62,7 @@ for (const bucket of readdirSync(join(ROOT, "skills"))) {
     if (words > MAX_DESC_WORDS) fail(where, `description is ${words} words (max ${MAX_DESC_WORDS}) — it is summarizing, not triggering`);
 
     const userInvoked = fm.keys["disable-model-invocation"] === "true";
+    if (!userInvoked) modelInvokedDescWords += words;
     if (userInvoked && /\bUse when\b/i.test(fm.keys.description ?? ""))
       fail(where, "user-invoked skill keeps a trigger list; a human reads this description");
     if (!userInvoked && !/\bUse (when|before)\b/i.test(fm.keys.description ?? ""))
@@ -80,6 +83,11 @@ for (const bucket of readdirSync(join(ROOT, "skills"))) {
     ]) {
       if (pattern.test(fm.body)) warn(where, `body names a harness (${pattern}) — prefer "${better}"`);
     }
+
+    // Write plainly: no em-dashes or en-dashes in the description or body (fenced code is exempt).
+    const proseBody = fm.body.replace(/```[\s\S]*?```/g, "");
+    if (/[—–]/.test(proseBody) || /[—–]/.test(fm.keys.description ?? ""))
+      fail(where, "em-dash or en-dash present; Write plainly bans them (use periods, commas, or parentheses)");
   }
 }
 
@@ -132,7 +140,11 @@ for (const f of readdirSync(join(ROOT, "profiles")).filter((f) => f.endsWith(".j
   }
 }
 
+if (modelInvokedDescWords > MAX_TOTAL_DESC_WORDS)
+  warn("descriptions", `aggregate model-invoked description budget is ${modelInvokedDescWords} words, over the soft ceiling of ${MAX_TOTAL_DESC_WORDS}; trim triggers or move detail into bodies`);
+
 console.log(`checked ${count} skills`);
+console.log(`model-invoked descriptions load ${modelInvokedDescWords} words every session (ceiling ${MAX_TOTAL_DESC_WORDS}).`);
 if (warnings.length) console.log(`\n${warnings.length} warning(s):\n` + warnings.map((w) => `  - ${w}`).join("\n"));
 if (problems.length) {
   console.log(`\n${problems.length} problem(s):\n` + problems.map((p) => `  - ${p}`).join("\n"));

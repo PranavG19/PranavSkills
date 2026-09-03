@@ -3,16 +3,16 @@
 For a product feature / capability. The general decision-complete spec. If the feature includes a schema or endpoints, pull in the `data-model` / `api-contract` blocks for those parts.
 
 ```markdown
-# <Feature> — Spec
+# <Feature> Spec
 
 ## Problem
 The problem from the user's perspective. Why it matters now.
 
 ## Solution
-The solution from the user's perspective — the experience, not the mechanism.
+The solution from the user's perspective, the experience, not the mechanism.
 
 ## User stories
-A long, numbered list covering the whole surface: "As a <actor>, I want <capability>, so that <benefit>." Include happy path, edge cases, error states, empty states, permissions. If a story implies a decision, that decision goes in Decisions below.
+A long, numbered list covering the whole surface. "As a <actor>, I want <capability>, so that <benefit>." Include happy path, edge cases, error states, empty states, permissions. If a story implies a decision, that decision goes in Decisions below.
 
 ## Decisions
 The design decisions, locked. Modules built/modified and their interfaces; data shapes; key interactions; state machines (legal states + transitions). Decisions, not file paths. Inline a small fragment (schema row, state machine, type) only where prose is less precise.
@@ -26,7 +26,7 @@ The existing modules likely to change, what each owns, their interfaces, and the
 that demonstrate the pattern. Treat this as an orientation map, not a frozen implementation plan.
 
 ## Edge cases & states
-Each named with the decided behavior: empty, loading, error, partial, duplicate, offline, permission-denied, concurrent. The cases that usually get improvised mid-build — decide them here.
+Each named with the decided behavior. Empty, loading, error, partial, duplicate, offline, permission-denied, concurrent. The cases that usually get improvised mid-build get decided here.
 
 ## Security (MANDATORY)
 Trust boundary; authorization per action (the exact rule, not "secured"); input validation; PII/secret handling; what's logged vs. redacted. If the feature has no security surface, say so and why.
@@ -47,7 +47,7 @@ What happens when each dependency/external call fails; degraded behavior; retrie
 What this explicitly does not cover, so the boundary is unambiguous.
 
 ## Testing
-Test seams (highest level reaching the behavior; prefer existing seams; prior art in the codebase). What a good test asserts — external behavior, not implementation.
+Test seams (highest level reaching the behavior; prefer existing seams; prior art in the codebase). What a good test asserts, i.e. external behavior, not implementation.
 
 ## Open questions
 Anything unresolved, with who/what is needed to resolve it. A finished spec has none in its mandatory sections.

@@ -14,7 +14,7 @@ argument-hint: "<question>"      # only when the skill takes an argument
 ---
 ```
 
-No `allowed-tools`, no `version`, no `tags`, no `model`. Single-line descriptions —
+No `allowed-tools`, no `version`, no `tags`, no `model`. Single-line descriptions, and
 no YAML block scalars (`>-`), which render inconsistently across harnesses.
 
 ## The description is a trigger, not a summary
@@ -22,14 +22,14 @@ no YAML block scalars (`>-`), which render inconsistently across harnesses.
 It is a **context pointer**: the only thing loaded in every session, and the sole basis
 on which the agent decides to open the skill. Write it to fire, not to describe.
 
-**Model-invoked** — `<Terse capability statement>. Use when <trigger>, <trigger>, or <trigger>.`
+**Model-invoked**. `<Terse capability statement>. Use when <trigger>, <trigger>, or <trigger>.`
 
 ```yaml
 description: Diagnosis loop for hard bugs and performance regressions. Use when the user
   says "diagnose"/"debug this", or reports something broken/throwing/failing/slow.
 ```
 
-**User-invoked** — a human reads this. Strip the trigger list entirely.
+**User-invoked**. A human reads this. Strip the trigger list entirely.
 
 ```yaml
 description: A relentless interview to sharpen a plan or design.
@@ -54,9 +54,13 @@ Thin user-invoked wrappers over thick model-invoked primitives are the intended 
 
 ## Body
 
-- No H1 repeating the name, no preamble, no "When to use" section — the description owns that.
+- No H1 repeating the name, no preamble, no "When to use" section. The description owns that.
 - Numbered steps with a **bold lead-in**, for procedures.
 - Every step needs a checkable bound, or the agent stops early and calls it done.
+  A bound has two levers, clarity and demand. "Every modified model accounted for" demands more
+  legwork than "produce a change list", though both are clear. Sharpen the bound first, since that
+  is local and cheap. Split the work across a context boundary only when the bound is irreducibly
+  fuzzy and the rush to finish persists.
 - Express a dependency as an instruction to invoke the named skill. One skill per call; a step
   needing two skills is two calls. Never deep-link `../other-skill/FILE.md`.
 
@@ -77,24 +81,31 @@ Harness-specific presentation goes in a sidecar: `<skill>/agents/openai.yaml`.
 
 - **Negation.** Prohibition drags the forbidden behavior into context and makes it *more*
   available. Prompt the positive target. A bare "don't" earns its place only as a hard guardrail
-  that cannot be phrased positively — and even then, pair it with the positive.
+  that cannot be phrased positively, and even then, pair it with the positive.
 - **No-ops.** An instruction the model already follows by default pays load to say nothing.
-  The test is behavioral, not aesthetic: does it change the output versus the default? When a
-  sentence fails, delete the sentence — do not trim words from it.
+  The test is behavioral, not aesthetic. Does it change the output versus the default? When a
+  sentence fails, delete the sentence, do not trim words from it.
 - **Duplication.** The same meaning in two places costs maintenance and inflates that meaning's
   apparent rank.
 - **Caching the environment.** A document restating what one command or one file already reports
   is a cache, and it goes stale. Record what the agent cannot find by looking: the unwritten
   convention, the reason behind a choice, the gotcha no config confesses.
 
+## Reuse the load-bearing tokens
+
+Cohesion across skills comes from reusing a handful of tokens verbatim (mirror oracle, blast
+radius, red-first, vertical slice, certainty ladder). Repeat the token, never re-spell the meaning.
+This reconciles with the no-duplication rule above. Duplicating a definition inflates its rank,
+whereas reusing a token keeps one definition and many pointers to it.
+
 ## Progressive disclosure
 
 Three rungs: in-file step → in-file reference section → separate file behind a pointer.
-Branching is the test — inline what every run needs; push behind a pointer what only some
+Branching is the test. Inline what every run needs; push behind a pointer what only some
 runs reach. A skill over ~120 lines is usually one that skipped this.
 
 Bulk reference material is not a skill. It goes in `knowledge/<domain>/` with an `INDEX.md`,
-reached either by a router skill that owns the domain or by `recall`.
+reached by a router skill that owns the domain.
 
 ## Retiring a skill
 

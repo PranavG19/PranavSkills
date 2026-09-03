@@ -5,32 +5,32 @@ description: Prove a behavioral claim with a signal you did not author. Use when
 
 `verify → name the claim → find an oracle the implementation cannot reach → red-first → grade by an independent signal → report what is verified vs merely self-consistent`
 
-This is the antidote to the **mirror oracle**: the agent writes the code AND the test AND grades itself green. The iron law — **a green check from a signal the author produced proves only that the author agreed with themselves.** Every signal in the stack (typecheck, the test you just wrote, coverage, even mutation score) certifies *self-consistency*, never *correctness*. Break the loop: grade the claim from a vantage the implementation cannot author. Where none is reachable, call it **unverified** — an honest "unverified" beats a false green.
+This is the antidote to the **mirror oracle**, where the agent writes the code AND the test AND grades itself green. The iron law. **A green check from a signal the author produced proves only that the author agreed with themselves.** Every signal in the stack (typecheck, the test you just wrote, coverage, even mutation score) certifies *self-consistency*, never *correctness*. Break the loop by grading the claim from a vantage the implementation cannot author. Where none is reachable, call it **unverified**. An honest "unverified" beats a false green.
 
-Sibling skills sit elsewhere: `critiquing` runs a design-time panel on the same model; the project's test runner reports a signal its author also wrote. This skill is the only one that asks where the expected value came from.
+Sibling skills sit elsewhere. `critiquing` runs a design-time panel on the same model; the project's test runner reports a signal its author also wrote. This skill is the only one that asks where the expected value came from.
 
 ## The one question
 
-**Where does the expected value come from, and can the code reach it?** A value the implementation computed — or that you wrote in the same breath as the code — is a mirror. Exactly three author-independent sources of truth exist; use one:
+**Where does the expected value come from, and can the code reach it?** A value the implementation computed, or that you wrote in the same breath as the code, is a mirror. Exactly three author-independent sources of truth exist; use one.
 
-1. **Content / input identity** — the input itself is the oracle. Round-trip (`decode(encode(x)) == x`), inverse, a reproducible hash a third party recomputes. The witness is the input, which the buggy code cannot re-derive.
-2. **A monotonic baseline** — yesterday's number you didn't get to pick this change: test count must not drop, coverage must not regress, finding-count per rule must not rise. "Satisfy the gate" becomes "hold a measurement from a commit you didn't author."
-3. **An outside-in production signal** — a vantage the emitting code cannot write: the edge SLI (gateway/LB, rather than the app's own success counter), a black-box probe asserting on the response *body*, a canary, a honeytoken the attacker trips, a screenshot diff for visual output.
+1. **Content / input identity.** The input itself is the oracle. Round-trip (`decode(encode(x)) == x`), inverse, a reproducible hash a third party recomputes. The witness is the input, which the buggy code cannot re-derive.
+2. **A monotonic baseline.** Yesterday's number you didn't get to pick this change. Test count must not drop, coverage must not regress, finding-count per rule must not rise. "Satisfy the gate" becomes "hold a measurement from a commit you didn't author."
+3. **An outside-in production signal.** A vantage the emitting code cannot write. The edge SLI (gateway/LB, rather than the app's own success counter), a black-box probe asserting on the response *body*, a canary, a honeytoken the attacker trips, a screenshot diff for visual output.
 
 ## How to verify (scale to the claim's blast radius)
 
-1. **Name the claim precisely.** Not "it works" — "`charge(cents)` rounds half-to-even and never produces a negative receipt." A claim you can't state is a claim you can't verify.
+1. **Name the claim precisely.** Not "it works" but "`charge(cents)` rounds half-to-even and never produces a negative receipt." A claim you can't state is a claim you can't verify.
 
-2. **Pick the cheapest sufficient oracle** — tier by cost so the inner loop stays affordable:
-   - **Pure-shape** (rename, move, type-only): typecheck is enough — reported as `unverified: behavior-not-checked` rather than as correctness.
+2. **Pick the cheapest sufficient oracle.** Tier by cost so the inner loop stays affordable.
+   - **Pure-shape** (rename, move, type-only): typecheck is enough, reported as `unverified: behavior-not-checked` rather than as correctness.
    - **Return-value logic**: one focused test whose expected value is a **spec literal** (`toBe(80)` from the ticket) or a **differential reference** from a *different* module/library/prior release. A literal that re-derives the SUT's own formula (`toBe(price * rate)`) is a mirror.
    - **Algebraic / invariant-bearing** (codec, parser, sort, normalize): a **property** (round-trip / metamorphic / differential) plus ≥1 spec-anchored literal. The property must assert an invariant the spec states, not re-encode the implementation's formula.
-   - **Effect-bearing** (I/O, ordered calls, mutation): assert the **effect transcript** (recorded call sequence) instead of the return value. Falsify by swapping two adjacent effects — still green means it doesn't pin order.
+   - **Effect-bearing** (I/O, ordered calls, mutation): assert the **effect transcript** (recorded call sequence) instead of the return value. Falsify by swapping two adjacent effects. Still green means it doesn't pin order.
    - **Critical path** (money, auth, data, irreversible): the above **plus mutation testing on changed lines** as a sensitivity check (gate: zero new survivors) **plus** an outside-in signal if it ships to prod (canary on edge SLI).
 
 3. **Prove sensitivity red-first.** Run the new/changed test against the *parent* state and confirm
-   it fails — and fails for the intended reason, not an unrelated error (import, typo, wrong
-   fixture) — then confirm it passes on the new code. A test green on both proves nothing about the
+   it fails, and fails for the intended reason, not an unrelated error (import, typo, wrong
+   fixture), then confirm it passes on the new code. A test green on both proves nothing about the
    change. For a new feature, temporarily break the implementation and confirm the test catches
    it. This proves the test observes the change; it does not make its expected value independent.
 
@@ -38,15 +38,15 @@ Sibling skills sit elsewhere: `critiquing` runs a design-time panel on the same 
 
 5. **Watch for the swallow.** Code that catches an error and returns a success value (a 2xx, a default) makes its own success signal a lie. Verify against what the *caller/edge* observed, and add a distinct failure counter that a test forces to move.
 
-## How sure are you — the certainty ladder
+## How sure are you (the certainty ladder)
 
-Grade every safety-relevant claim by where its evidence lands, and state the rung out loud:
+Grade every safety-relevant claim by where its evidence lands, and state the rung out loud.
 
-1. **You said so** — an assertion. Worthless on its own.
-2. **You pointed at the line** — you read the code that makes it true.
-3. **You showed the bad case can't happen** — you reasoned it through structurally.
-4. **You ran a check that fails loud if you're wrong** — the bar for "proven."
-5. **You reproduced it in the running app** — the strongest rung.
+1. **You said so.** An assertion. Worthless on its own.
+2. **You pointed at the line.** You read the code that makes it true.
+3. **You showed the bad case can't happen.** You reasoned it through structurally.
+4. **You ran a check that fails loud if you're wrong.** The bar for "proven."
+5. **You reproduced it in the running app.** The strongest rung.
 
 Rung 4 is the bar. Any fact you can't get to rung 4, say so explicitly rather than letting a
 rung-1 claim read as settled.
@@ -58,24 +58,25 @@ For a completed feature, integration frontier, or release candidate, read
 other family is not applicable. This is risk selection, not a ritual that runs every expensive
 suite against every change.
 
-## Report — per claim, separately
+## Report, per claim, separately
 
-- **Verified** — by which independent oracle, named: input identity / spec literal / differential
+- **Verified** by a named independent oracle: input identity / spec literal / differential
   reference / historical baseline / edge SLI / externally judged screenshot.
-- **Self-consistent only** — typecheck passed, code agrees with its own test, no independent oracle. **Not** done.
-- **Unverified** — no oracle reachable; say why and what would provide one.
+- **Self-consistent only.** Typecheck passed, code agrees with its own test, no independent oracle. **Not** done.
+- **Unverified.** No oracle reachable; say why and what would provide one.
 
 Four greens from one wrong belief are still one wrong belief. Format + lint + typecheck + my-own-test are correlated on exactly what they don't cover: runtime behavior against the spec. Keep them itemized rather than summed into "it works."
 
 ## Escalate, don't fake
 
-For a claim about an **irreversible operation**, a **cross-system boundary**, or **perceptual output you cannot observe**, an independent oracle may be unreachable from inside the loop. Say so and request the human, the canary, or the real device — manufacturing a green here is the one failure this skill exists to prevent. (Same escalation trigger as `triage` and `agent-arch`.)
+For a claim about an **irreversible operation**, a **cross-system boundary**, or **perceptual output you cannot observe**, an independent oracle may be unreachable from inside the loop. Say so and request the human, the canary, or the real device. Manufacturing a green here is the one failure this skill exists to prevent. (Same escalation trigger as `triage` and `agent-arch`.)
 
 ## Constraints
 
 - The expected value comes from outside the implementation. Red-first and mutation testing prove
   sensitivity, not that an author-chosen expected value is correct.
-- Gate mutation testing on **zero new survivors on changed lines**, not on a percentage — equivalent mutants make 100% unreachable and teach suppression.
+- Gate mutation testing on **zero new survivors on changed lines**, not on a percentage. Equivalent mutants make 100% unreachable and teach suppression.
 - A red snapshot gets diagnosed, not re-blessed; `--update` to reach green launders a regression into truth.
+- An oracle's verdict binds to the exact tree it ran against. A green from before a later edit, rebase, or merge certifies the old code, not the tree you are about to call done. Re-run it against the current tree before citing, or mark the claim unverified.
 - A flaky test is a bug to fix or a quarantine to file. Retrying it to green counts as neither.
-- Cheap-but-honest beats expensive-and-skipped: a sub-second focused test with an independent oracle, run red-first, outperforms a full suite the agent stops running. Keep the loop fast (step 2's tiering) so it actually runs.
+- Cheap-but-honest beats expensive-and-skipped. A sub-second focused test with an independent oracle, run red-first, outperforms a full suite the agent stops running. Keep the loop fast (step 2's tiering) so it actually runs.

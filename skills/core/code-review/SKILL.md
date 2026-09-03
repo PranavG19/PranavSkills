@@ -7,7 +7,9 @@ description: Review one implemented ticket from a fresh context against its acce
 
 1. **Pin the review.** Resolve the ticket, referenced spec sections, merge-base or parent commit,
    exact diff, commit list, repository standards, and recorded evidence. Stop on an unresolved
-   fixed point or empty diff.
+   fixed point or empty diff. Recorded evidence counts only against the pinned diff. A green an
+   implementer captured on a superseded revision does not carry to this one, so re-establish it
+   against the current diff or treat it as absent.
 2. **Start clean.** Review outside the implementation conversation. Treat implementer output as
    evidence to inspect, not a verdict.
 3. **Dispatch two independent reviewers.** Run them in parallel when supported; otherwise use
@@ -18,7 +20,7 @@ description: Review one implemented ticket from a fresh context against its acce
      named exemplars, tests, and surrounding conventions. Flag regressions, unsafe boundaries,
      missing failure handling, unnecessary complexity, and implementation-coupled tests.
 4. **Verify candidates.** Re-read each cited location and authority. For any finding on a critical
-   path, re-run a focused check — a re-read proves you pointed at the line, not that the bug is
+   path, re-run a focused check. A re-read proves you pointed at the line, not that the bug is
    real. Grade each finding by where its evidence lands: (1) asserted, (2) you pointed at the line,
    (3) you showed the bad case can't happen, (4) you ran a check that fails loud if wrong, (5) you
    reproduced it. Rung 4 is the bar for a blocking finding; below it, mark the finding's certainty.
@@ -38,3 +40,4 @@ description: Review one implemented ticket from a fresh context against its acce
 
 Use `critiquing` only for an additional multi-angle panel. The two review axes above are mandatory
 and narrower: did we build the right thing, and did we build it correctly for this repository?
+Reviewing a diff with no local ticket is `diff-review`'s job, not this skill's.
