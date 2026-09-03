@@ -78,6 +78,7 @@
   <a href="#flows">How to use it</a>
   <h2>Why</h2>
   <a href="#why">The principles</a>
+  <a href="#lineage">What we took, and didn't</a>
   <a href="#built">How it is built</a>
   <a href="#safety">Safety and authority</a>
   <a href="#start">Get started</a>
@@ -179,6 +180,34 @@
     <div class="card"><h3>Say what you know, and how you know it</h3><p>Grade a claim by where its evidence lands, from "I said so" up to "I ran it and reproduced it," and state the rung out loud.</p></div>
   </div>
   <div class="call" style="margin-top:16px"><b>The through-line.</b> Every automated reviewer catches the patterns it already knows. The way to keep quality high is a ratchet, not a pile. When review catches a recurring mistake, promote it to the strongest guardrail that will hold (a type, a lint, a canonical helper) so it can never reappear, and move the calls a reviewer cannot make to design time, where a human applies judgment cheaply.</div>
+</section>
+
+<section id="lineage">
+  <h2>What we took, and didn't</h2>
+  <p>This toolkit is not invented from nothing. It is a deliberate synthesis of three sources, kept where they were right and diverged from where the tradeoff did not fit maintaining real software. Naming what was borrowed and what was left is the honest version of a credits page.</p>
+
+  <div class="grid3" style="margin-top:18px">
+    <div class="card">
+      <h3>Dex, "Why Software Factories Fail"</h3>
+      <p class="muted" style="margin-top:0">The essay that argues a lights-off factory cannot hold, because models are rewarded for passing tests and never penalized for eroding maintainability, and maintainability has no fast oracle to reward.</p>
+      <p><b style="color:var(--good)">Took.</b> Turn the lights back on (a human reads the code). Front-load alignment so review is short. The program-design layer (call trees, file-tree diffs, method signatures) is lifted almost directly into <code>show-me</code>. Vertical slices become <code>to-tickets</code>. The 80/20 split (oneshot the small, full process for the consequential) is our <code>triage</code> gate. Review agents raise the floor, not the ceiling, so we ratchet their catches into structure.</p>
+      <p><b style="color:var(--warn)">Left.</b> The separate Product Requirements and System Architecture doc phases with user-outcome metrics and HTML mockups, which we fold into <code>grilling</code>, <code>spec</code>, and <code>agent-arch</code> rather than run as standalone stages. The author-opt-in review ritual, and the accompanying product.</p>
+    </div>
+    <div class="card">
+      <h3>pstack</h3>
+      <p class="muted" style="margin-top:0">A dense, capable agent stack built as a single-harness monolith, with real tooling, multi-model routing, verbatim playbooks, and autonomy pushed close to full autopilot.</p>
+      <p><b style="color:var(--good)">Took.</b> Cite the decision, not the source (a citation with no decision behind it is name-dropping). Ship real machinery, not just prose, which is why enforcement lives in a renderer and a linter. Keep a first-class verification discipline.</p>
+      <p><b style="color:var(--warn)">Left.</b> Autopilot-full autonomy and a dormant self-dispatching bug-fixer, against our rule that a human owns the irreversible. Single-harness lock, against harness-neutral rendering. And the framing of planning as ceremony that drifts, which is the exact opposite of a plan-first spine.</p>
+    </div>
+    <div class="card">
+      <h3>Matt Pocock's skills</h3>
+      <p class="muted" style="margin-top:0">The process-first skill library this project started from. Grilling, spec, tickets, TDD, review, triage, done as small composable procedures.</p>
+      <p><b style="color:var(--good)">Took.</b> The spine itself and most of its DNA (<code>grilling</code>, <code>spec</code>, <code>to-tickets</code>, <code>tdd</code>, <code>code-review</code>, <code>triage</code>, <code>investigate</code>, <code>resolving-merge-conflicts</code>). The context and decision-record formats. The plain-writing ban on em-dashes, adopted after they scrubbed theirs repo-wide.</p>
+      <p><b style="color:var(--warn)">Left.</b> Single-harness plugin packaging, in favor of rendering to several. And we added what a solo library does not need: multi-project <code>supervise</code>, risk-based independent verification, a local ticket system, and a conservative-autonomy boundary.</p>
+    </div>
+  </div>
+
+  <div class="call key" style="margin-top:18px"><b>The one place we push past all three.</b> The tempting idea is to encode every known failure pattern into review agents and let the factory run. Dex's answer is that this raises the floor but not the ceiling, because a reviewer only catches patterns it already knows, and the hardest maintainability calls are not patterns. Our resolution is a ratchet, not a pile. Build the pattern into review to catch it once, then promote it to the strongest guardrail that will hold (a type that makes the bad state unrepresentable, a lint, a canonical helper) so it can never recur, and route the calls a reviewer cannot make to design time, where a human applies judgment while the change is still cheap. Review raises the floor; the ratchet and the human raise the ceiling.</div>
 </section>
 
 <section id="built">

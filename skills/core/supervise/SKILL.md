@@ -33,7 +33,9 @@ observes; each project orchestrator owns its own `orchestrate` pipeline and loca
 8. **Integrate serially.** Land approved branches through one project integration owner in
    dependency order. After each integration, run the affected guard checks; after the frontier
    merges, run the repository gate and relevant gauntlet again. Move each ticket from `approved`
-   to `done` only after that integration remains green.
+   to `done` only after that integration remains green. Track several in-flight CRs to submission
+   with the `_shared/cr-tracker-format.md` ledger, keyed by CR id plus head SHA so a new push voids
+   that row's prior verdicts.
 9. **Report by exception.** Surface decisions, conflicts, failed gates, stalled sessions, and
    completed user-visible slices. Keep routine progress in cmux status rather than flooding the
    conversation. A step you skip stays on the board with a one-line reason; "by exception" governs
