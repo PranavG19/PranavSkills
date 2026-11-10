@@ -1,0 +1,22 @@
+{
+  "$comment": "Config dir for SDK-spawned worker sessions (CLAUDE_CONFIG_DIR). Settings only: no skills, knowledge, or context, so the worker listing stays small. Workers ran at medium effort most of the time because nothing pinned it. Optional: only machines running workers have it.",
+  "kind": "claude",
+  "target": "~/.claude-brew",
+  "optional": true,
+  "buckets": [],
+  "knowledge": [],
+  "context": [],
+  "hooks": [],
+  "settings": {
+    "effortLevel": "high",
+    "env": {
+      "DISABLE_TELEMETRY": "1",
+      "CLAUDE_BASH_NO_LOGIN": "1",
+      "USE_BUILTIN_RIPGREP": "1",
+      "MAX_THINKING_TOKENS": "63999",
+      "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+      "MAX_MCP_OUTPUT_TOKENS": "10000",
+      "CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS": "8000"
+    }
+  }
+}

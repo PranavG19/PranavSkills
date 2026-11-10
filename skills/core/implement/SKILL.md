@@ -25,7 +25,7 @@ description: Implement exactly one local ticket through a red-green-refactor loo
    it tests; if you judge a claim non-critical and skip `verify`, record that skip and its reason in
    the ticket.
 8. **Hand off.** Move the ticket to `review`, summarize the diff and evidence in the ticket, and
-    stop. Review runs in a fresh context through `code-review`; do not self-approve.
+    stop. Review runs in a fresh context through `ticket-review`; do not self-approve.
 
 One ticket is the context budget. Scope discovered outside it becomes a new ticket unless it is
 required to make the current acceptance criterion true.

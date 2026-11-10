@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TITLE</title>
+<script>/* Light by default; the toggle remembers dark. Runs before paint to avoid a flash. */
+  try { if (localStorage.getItem("theme") === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}
+</script>
+<style>
+  /* Tokens. Markup never uses raw hex. Color means status; --accent is the one highlight. */
+  :root, [data-theme="light"] {
+    --bg: #ffffff; --soft: #f6f7f9; --ink: #111418; --body: #2b3038; --muted: #6a717c; --faint: #b6bcc5; --line: #e8eaee;
+    --accent: #2f6bff; --accent-soft: #edf2ff;
+    --ok: #16803c; --ok-soft: #e9f7ee; --warn: #a15c00; --warn-soft: #fff4e0; --bad: #c4291c; --bad-soft: #fdeceb;
+    /* One value that changes over the hero story (a term, a version, a stage): c1, c2, c3. */
+    --c1: #2f6bff; --c1-soft: #e8efff; --c2: #c26a00; --c2-soft: #fff0db; --c3: #7a45d8; --c3-soft: #f1eafd;
+  }
+  [data-theme="dark"] {
+    --bg: #16181c; --soft: #1e2126; --ink: #f2f3f5; --body: #cdd1d7; --muted: #8b929c; --faint: #4a5059; --line: #2a2e35;
+    --accent: #7ea2ff; --accent-soft: #1d2740;
+    --ok: #5fcf85; --ok-soft: #16301f; --warn: #f0b44c; --warn-soft: #33270f; --bad: #ff8278; --bad-soft: #3a1a18;
+    --c1: #7ea2ff; --c1-soft: #1d2740; --c2: #f0a748; --c2-soft: #352510; --c3: #b994ff; --c3-soft: #2a1f42;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--body);
+         font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .84em; }
+  code { background: var(--soft); padding: 1px 5px; border-radius: 5px; white-space: nowrap; }
+  a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+  button { font: inherit; cursor: pointer; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+  /* Layout: sticky rail on wide screens, one reading column. The theme button floats when the rail hides. */
+  .page { display: grid; grid-template-columns: 180px minmax(0, 880px); gap: 56px; justify-content: center; padding: 0 32px; }
+  .rail { position: sticky; top: 0; height: 100vh; padding: 40px 0; font-size: 14px; }
+  .rail a { display: block; color: var(--muted); padding: 5px 0 5px 12px; border-left: 2px solid var(--line); }
+  .rail a.on { color: var(--ink); border-left-color: var(--accent); font-weight: 600; }
+  .theme { margin-top: 24px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 4px 10px; font-size: 13px; }
+  @media (max-width: 1100px) { .page { grid-template-columns: minmax(0, 880px); padding: 0 18px; } .rail a { display: none; }
+    .rail { position: fixed; top: 10px; right: 10px; height: auto; padding: 0; z-index: 20; } .theme { margin: 0; } }
+  /* Phones: the theme button sits at the top and scrolls away, so it never covers a table cell. */
+  @media (max-width: 600px) { .rail { position: absolute; } }
+  main { padding: 40px 0 120px; }
+
+  /* Type scale. */
+  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 36px; line-height: 1.15; letter-spacing: -.02em; color: var(--ink); margin: 8px 0 12px; max-width: 26ch; }
+  .lede { margin: 0 0 6px; max-width: 64ch; color: var(--ink); }
+  .ask-line { margin: 0 0 22px; font-size: 15px; }
+  section { padding-top: 72px; }
+  h2 { font-size: 26px; line-height: 1.25; letter-spacing: -.01em; color: var(--ink); margin: 6px 0 18px; max-width: 32ch; }
+  .num { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: .08em; }
+  .cap { max-width: 62ch; margin: 14px 0 0; font-size: 15px; color: var(--muted); }
+  .nowrap { white-space: nowrap; }
+  /* Inline gloss: the definition sits next to the term, in the sentence, so no fact hides behind hover. */
+  .gl { color: var(--muted); }
+  /* Legend: every code a figure prints (step codes, acronyms, a commit), one plain line each, under its drawing.
+     budget.sh fails a visible code that is not in its figure's .legend, inside a data-gloss element, or glossed earlier.
+     An empty legend takes no space, so every figure carries the slot. */
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+  .legend:empty, .legend:not(:has(dt)) { display: none; }
+  .legend > div { display: flex; gap: 6px; } .legend dt { font-weight: 700; color: var(--ink); font-family: var(--mono, ui-monospace, monospace); font-size: 13px; } .legend dd { margin: 0; }
+  section > :is(.stepper, .trace, .tabs, .diff, .tl, table) { margin-top: 20px; }
+
+  /* Status: always a word, color reinforces. */
+  .pill { display: inline-block; font-size: 12px; font-weight: 700; line-height: 20px; padding: 0 8px; border-radius: 999px; vertical-align: 2px; white-space: nowrap; }
+  .ok { color: var(--ok); background: var(--ok-soft); } .warn { color: var(--warn); background: var(--warn-soft); }
+  .bad { color: var(--bad); background: var(--bad-soft); } .info { color: var(--accent); background: var(--accent-soft); }
+
+  /* Hover term: for extras only. Anything the claim needs uses .gl instead. */
+  .term { border-bottom: 1.5px dotted var(--faint); cursor: help; position: relative; }
+  .term:hover::after, .term:focus::after { content: attr(data-def); position: absolute; left: 0; top: 130%; z-index: 9; width: max-content; max-width: 340px;
+    background: var(--ink); color: var(--bg); font-size: 14px; line-height: 1.45; padding: 8px 11px; border-radius: 8px; white-space: normal; font-weight: 400; }
+
+  /* Scenario pills, shared by core and trace. Bold is faked with a border so the row never reflows; Replay stays on the row. */
+  .scen { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+  .scen button { background: var(--bg); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 4px 14px; font-size: 14px; }
+  .scen button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .scen .replay { border-radius: 8px; }
+
+  /* Core picture: the one figure the page exists for. An inline SVG system map whose marks change per scenario.
+     On any SVG element: data-on="a b" shows it only in those scenarios (add class base to keep it with JS off), data-hot="a" highlights it, data-stop="a" paints it rejected.
+     Each scenario's verdict is an <li data-s>. With JS off the base map shows and every verdict is listed. */
+  .core { background: var(--soft); border-radius: 16px; padding: 18px 22px 16px; margin: 0; }
+  /* SVG text floor: 13 viewBox units, so a figure scaled to 95% still renders 12px or more. budget.sh "small" fails anything under 12px.
+     Narrow screens: a .frame may hold <svg class="wide"> and <svg class="tall"> (viewBox about 340 wide, drawn top to bottom).
+     Under 600px the tall one shows. Both carry the same data-on/data-hot/data-stop/data-pick marks; JS treats same-name picks as one. */
+  .frame svg { display: block; width: 100%; height: auto; }
+  .frame svg.tall { display: none; }
+  @media (max-width: 600px) { .frame:has(> svg.tall) > svg:not(.tall) { display: none; } .frame > svg.tall { display: block; } }
+  svg text { font-size: 13px; }
+  .core .box rect { fill: var(--bg); stroke: var(--line); stroke-width: 1.5; transition: stroke .3s, fill .3s; }
+  .core .box .t { fill: var(--ink); font-size: 15px; font-weight: 600; } .core .box .s { fill: var(--muted); font-size: 13px; }
+  .core .lane { fill: var(--muted); font-size: 13px; letter-spacing: .08em; }
+  .core .e { stroke: var(--faint); stroke-width: 1.5; fill: none; marker-end: url(#arr); transition: stroke .3s; }
+  .core .e.dash { stroke-dasharray: 5 4; }
+  .defs marker path { fill: var(--faint); } .defs #arr-ink path { fill: var(--ink); }
+  .core .el { fill: var(--body); font-size: 13px; paint-order: stroke; stroke: var(--soft); stroke-width: 5px; stroke-linejoin: round; }
+  .core .mine rect { stroke: var(--accent); stroke-width: 2.5; }
+  .core .mine .tag { fill: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .06em; }
+  .core.js [data-on] { display: none; } .core.js [data-on].is-on { display: inline; }
+  .core:not(.js) [data-on]:not(.base) { display: none; }
+  .core .e.is-hot { stroke: var(--accent); stroke-width: 3; }
+  .core .box.is-hot rect { stroke: var(--ok); stroke-width: 2.5; }
+  .core .box.is-stop rect { stroke: var(--bad); stroke-width: 2.5; fill: var(--bad-soft); }
+  .core .xmark circle { fill: var(--bad); } .core .xmark path { stroke: var(--bg); stroke-width: 2.5; }
+  .core .xmark text { fill: var(--bad); font-size: 13px; font-weight: 700; }
+  .core .okmark circle { fill: var(--ok); } .core .okmark path { stroke: var(--bg); stroke-width: 2.5; fill: none; }
+  .core .okmark text { fill: var(--ok); font-size: 13px; font-weight: 700; }
+  .core .says { list-style: none; margin: 10px 0 0; padding: 0; font-size: 15px; color: var(--ink); }
+  .core .says li::before { content: attr(data-label) ": "; color: var(--muted); }
+  .core.js .says li { display: none; } .core.js .says li.now { display: block; } .core.js .says li::before { content: none; }
+  /* While the reader guesses, the asked scenario is selected but its answer marks stay hidden (state labels still show). */
+  .core.blind :is(.xmark, .okmark, [data-mark]) { display: none !important; }
+
+  /* Stepper: an ordered flow where nothing rejects. */
+  .stepper { background: var(--soft); border-radius: 16px; padding: 24px; }
+  .nodes { display: flex; align-items: center; }
+  .node { flex: 1; min-width: 0; align-self: stretch; background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 14px; transition: border-color .3s, opacity .3s; opacity: .45; }
+  .node b { display: block; color: var(--ink); font-size: 15px; } .node small { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 2px; }
+  .node.seen { opacity: 1; } .node.now { opacity: 1; border-color: var(--accent); }
+  .edge { flex: 0 0 72px; text-align: center; font-size: 12px; color: var(--muted); } .edge::after { content: "\2192"; display: block; font-size: 20px; color: var(--faint); line-height: 1; }
+  .controls { display: flex; gap: 8px; align-items: center; margin-top: 18px; }
+  .controls button { background: var(--bg); border: 1px solid var(--line); color: var(--ink); border-radius: 8px; padding: 5px 14px; font-size: 14px; }
+  .controls button:disabled { opacity: .4; cursor: default; } .controls .count { font-size: 13px; color: var(--muted); margin-left: 6px; }
+  .why { margin: 16px 0 0; padding-left: 20px; color: var(--ink); font-size: 15px; }
+  .js .why { list-style: none; padding: 0; } .js .why li { display: none; } .js .why li.now { display: block; }
+
+  /* Trace: only where a gate can reject. One token runs through gates under a scenario and stops, red, at the first gate that says no.
+     Each gate lists outcomes as <li data-s data-v>; data-v is pass, stop, or maybe (inferred, hatched). No <li> means it passes.
+     An .edge holds a verb ("calls") or nothing: CSS draws the arrow, so "then" is a word the reader pays for and learns nothing from.
+     The verdict names a gate by its number, and an end gate with no <li> prints no readout, so no readout repeats a gate label. */
+  .trace { background: var(--soft); border-radius: 16px; padding: 22px 24px 20px; margin: 0; }
+  .track { position: relative; display: flex; align-items: stretch; }
+  .gate { flex: 1; min-width: 0; background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; transition: border-color .3s, background .3s; }
+  .gate b { display: block; color: var(--ink); font-size: 15px; } .gate small { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; margin-top: 2px; }
+  .gate .outs { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; line-height: 1.4; }
+  .gate .outs li::before { content: attr(data-s) ": "; color: var(--muted); }
+  .gate .outs li[data-v="stop"] { color: var(--bad); } .gate .outs li[data-v="maybe"] { color: var(--warn); } .gate .outs li[data-v="pass"] { color: var(--ok); }
+  .trace.js .gate .outs { display: none; }
+  .gate[data-v="pass"] { border-color: var(--ok); }
+  .gate[data-v="stop"] { border-color: var(--bad); background: var(--bad-soft); }
+  .gate[data-v="maybe"] { border-color: var(--warn); border-style: dashed; background: repeating-linear-gradient(135deg, var(--bg) 0 8px, var(--warn-soft) 8px 16px); }
+  .gate[data-v="maybe"] b::after { content: " ?"; color: var(--warn); }
+  .gate[data-v="skip"] { opacity: .4; }
+  .gate.end { flex: .8; }
+  .trace .edge { flex: 0 0 60px; align-self: center; }
+  .token { position: absolute; top: -11px; left: 0; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--accent);
+           box-shadow: 0 0 0 4px var(--accent-soft); transition: left .55s ease-in-out, top .55s ease-in-out, background .2s; display: none; }
+  .trace.js .token { display: block; } .token.stop { background: var(--bad); box-shadow: 0 0 0 4px var(--bad-soft); }
+  .token.maybe { background: var(--warn); box-shadow: 0 0 0 4px var(--warn-soft); } .token.ok { background: var(--ok); box-shadow: 0 0 0 4px var(--ok-soft); }
+  .verdict { margin: 16px 0 0; min-height: 1.6em; font-size: 15px; color: var(--ink); }
+  .verdict b { font-weight: 700; } .verdict[data-v="stop"] b { color: var(--bad); } .verdict[data-v="pass"] b { color: var(--ok); } .verdict[data-v="maybe"] b { color: var(--warn); }
+  /* Narrow screens: flows stack top to bottom and edges point down. */
+  @media (max-width: 700px) {
+    .nodes, .track { flex-direction: column; align-items: stretch; }
+    .edge, .trace .edge { flex: 0 0 auto; padding: 4px 0; align-self: center; } .edge::after { content: "\2193"; }
+    .token { top: 0; left: -14px !important; margin: 0; }
+  }
+
+  /* Tabs: same fields per option. */
+  .tabs [role="tablist"] { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+  .tabs [role="tab"] { background: none; border: 0; border-bottom: 2px solid transparent; padding: 8px 14px; color: var(--muted); font-size: 15px; margin-bottom: -1px; }
+  .tabs [role="tab"][aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .tabs [role="tabpanel"] { padding: 18px 2px 0; } .tabs [role="tabpanel"][hidden] { display: none; }
+  .facts { display: grid; grid-template-columns: 140px 1fr; gap: 6px 20px; margin: 0; font-size: 15px; } .facts dt { color: var(--muted); } .facts dd { margin: 0; }
+
+  /* Diff: long lines wrap, so two commands that differ only at the end never look identical. */
+  .diff { background: var(--soft); border-radius: 12px; padding: 14px 0; font-family: ui-monospace, Menlo, monospace; font-size: 14px; line-height: 1.8; }
+  .diff div { padding: 0 18px; white-space: pre-wrap; word-break: break-word; } .diff .del { background: var(--bad-soft); } .diff .add { background: var(--ok-soft); }
+  .diff mark { background: none; color: var(--ok); font-weight: 700; }
+
+  /* Scaled timeline: --from/--to in minutes from the axis start, --span on .tl. Give the last tick at the window end. */
+  .tl { position: relative; padding-top: 26px; }
+  .tl .axis { position: absolute; inset: 0 0 auto 0; height: 20px; font-size: 12px; color: var(--muted); }
+  .tl .axis span { position: absolute; left: calc(var(--at) / var(--span) * 100%); border-left: 1px solid var(--line); padding-left: 4px; height: 100%; }
+  .tl .axis span:last-child { transform: translateX(-100%); border-left: 0; border-right: 1px solid var(--line); padding: 0 4px 0 0; }
+  .tl .lane { position: relative; height: 56px; margin: 8px 0; } .tl .lane::before { content: attr(data-label); position: absolute; left: 0; top: -2px; font-size: 13px; color: var(--muted); }
+  .tl .blk { position: absolute; top: 20px; height: 32px; left: calc(var(--from) / var(--span) * 100%); width: calc((var(--to) - var(--from)) / var(--span) * 100% - 3px);
+             border-radius: 6px; font-size: 14px; font-weight: 600; padding: 6px 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  /* A contingency (rollback) is hatched and dashed so it never reads as a planned step. */
+  .tl .blk.cond { background: repeating-linear-gradient(135deg, transparent 0 6px, var(--bad-soft) 6px 12px); border: 1.5px dashed var(--bad); color: var(--bad); }
+  /* A blocker block is solid red; its .note sits right after it on the same lane, in words. */
+  .tl .blk.bad { border: 1.5px solid var(--bad); min-width: 3.4em; text-overflow: clip; }
+  .tl .note { position: absolute; top: 26px; left: calc(max(var(--at) / var(--span) * 100%, 3.4em) + 8px); z-index: 5; background: var(--bg); padding: 0 4px;
+              font-size: 14px; color: var(--bad); white-space: nowrap; }
+  .tl .gonogo { position: absolute; top: 0; bottom: 0; left: calc(var(--at) / var(--span) * 100%); border-left: 1.5px dashed var(--ink); z-index: 4; }
+  .tl .gonogo::before { content: ""; position: absolute; top: 20px; left: -7px; width: 12px; height: 12px; background: var(--bg); border: 1.5px solid var(--ink); transform: rotate(45deg); }
+  .tl .gonogo span { position: absolute; top: 36px; left: 8px; font-size: 12px; font-weight: 600; color: var(--ink); white-space: nowrap; background: var(--bg); padding: 0 4px; }
+  /* Phones: a scaled lane would cut every label to "E...". Each lane becomes a list; a block prints its data-t time before its full label. */
+  @media (max-width: 600px) {
+    .tl { padding-top: 0; } .tl .axis { display: none; }
+    .tl .lane { height: auto; padding-top: 22px; } .tl .lane::before { top: 0; }
+    .tl .blk, .tl .note, .tl .gonogo, .tl .gonogo span { position: static; display: block; width: auto; height: auto; white-space: normal; overflow: visible; margin: 0 0 6px; }
+    .tl .blk[data-t]::before { content: attr(data-t) "  "; font-weight: 400; color: var(--muted); }
+    .tl .gonogo { border: 0; border-top: 1.5px dashed var(--ink); padding-top: 4px; } .tl .gonogo::before { content: none; }
+  }
+
+  /* Tables: 5 rows visible; .clip hides the rest behind a button. Every table sits in a .tbl box that scrolls on its own, so the page never does. */
+  .tbl { overflow-x: auto; max-width: 100%; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  table.clip.clipped:not(.all) tbody tr:nth-child(n+6) { display: none; }
+  .more { margin-top: 10px; background: none; border: 0; color: var(--accent); padding: 0; font-size: 14px; }
+
+  /* Drawers: reference only. */
+  details { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 15px; } summary b { color: var(--ink); font-weight: 600; }
+  details[open] summary { margin-bottom: 12px; }
+  pre { position: relative; background: var(--soft); border-radius: 12px; padding: 16px 18px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+  .copy { position: absolute; top: 8px; right: 8px; font-size: 12px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 2px 8px; }
+
+  /* Guess inside the figure. A figure with data-ask="<scenario>" asks the reader to click where that scenario stops before it runs.
+     Core: clickable marks carry data-pick="<name>"; the answer is every pick whose data-stop lists the scenario, else the one with data-end.
+     Trace: the gates are the picks; the answer is the gate that stops, else the last gate. Two or more answers make it pick-several plus Check.
+     Nothing waits on the guess: scenario buttons and "Show me" always work, and with JS off the ask line hides and every outcome shows. */
+  .ask { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; margin: -6px 0 14px; font-size: 15px; color: var(--ink); }
+  .ask::before { content: "Guess"; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .ask button { background: none; border: 0; padding: 0; color: var(--accent); font-size: 14px; }
+  .ask[hidden] { display: none; }
+  .ask .res b { font-weight: 700; } .ask .res[data-v="ok"] b { color: var(--ok); } .ask .res[data-v="bad"] b { color: var(--bad); }
+  figure:not(.js) > .ask { display: none; }
+  /* The asked scenario's button carries a GUESS badge. Clicking it selects that scenario with its answer hidden and shows the question. */
+  .scen .gb { margin-left: 6px; font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--bg); background: var(--accent); border-radius: 999px; padding: 1px 6px; vertical-align: 1px; }
+  .asking [data-pick], .asking .gate { cursor: pointer; }
+  .asking [data-pick]:hover rect, .asking [data-pick]:focus rect { stroke: var(--accent); stroke-dasharray: 5 4; }
+  .asking .gate:hover, .asking .gate:focus { border-color: var(--accent); border-style: dashed; }
+  [data-pick]:focus, .gate:focus { outline: none; }
+  /* Your guess keeps a dashed outline; its color still says what happened there. */
+  .core .g-pick rect { stroke-width: 3; stroke-dasharray: 6 4; } .core .g-pick:not(.is-stop):not(.is-hot) rect { stroke: var(--accent); }
+  .gate.g-pick { outline: 3px dashed var(--accent); outline-offset: 3px; } .gate.g-pick[data-v="skip"] { opacity: .8; }
+
+  /* Guess a quantity: drag the slider, Check, and the true value lands on the same scale beside your guess.
+     data-min/data-max set the scale; each .mk[data-at] is a marked value, and .mk.truth is the answer (shown with JS off). */
+  .guess { background: var(--soft); border-radius: 16px; padding: 18px 22px 20px; margin: 0; }
+  .guess .scale { position: relative; height: 64px; margin: 10px 0 4px; border-bottom: 2px solid var(--faint); }
+  .guess .mk { position: absolute; bottom: 0; left: calc((var(--at) - var(--min)) / (var(--max) - var(--min)) * 100%); transform: translateX(-50%);
+               font-size: 13px; color: var(--muted); white-space: nowrap; text-align: center; transition: left .4s; }
+  .guess .mk::after { content: ""; display: block; width: 2px; height: 14px; margin: 2px auto 0; background: currentColor; }
+  .guess .mk.truth { color: var(--ok); font-weight: 700; } .guess .mk.mine { color: var(--accent); font-weight: 700; bottom: 24px; }
+  .guess .ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .guess input[type="range"] { width: 100%; accent-color: var(--accent); margin: 8px 0 0; }
+  .guess:not(.js) input, .guess:not(.js) .mine { display: none; }
+  .guess.js:not(.done) .mk:not(.mine) { visibility: hidden; }
+
+  /* Small multiples: same fields, same order, one column each. */
+  .multi { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; }
+  .multi h3 { margin: 0 0 10px; font-size: 17px; color: var(--ink); }
+
+  /* Multiples: a section figure's 2 to 4 scenarios drawn as small copies of one drawing, side by side on one scale, so the
+     contrast is on screen at load with no click. The author draws once, in <svg class="draw" viewBox>:
+       data-on="a b"   the element exists only in those panels
+       data-diff="a"   the element is what differs, drawn in the accent in panel a (no value: in every panel it appears in)
+       data-off="a"    not reached in panel a: dashed and muted, never faded below readable contrast
+     Each panel is one <li data-s data-label> in .outs: the label heads the panel, the text is its one outcome line.
+     An optional .mkey above the drawing names the shared parts once (gate names), so panels repeat shapes, not words.
+     JS (draw) clones the drawing per scenario into .mgrid and removes the source; with JS off the source drawing and every
+     outcome line show. Columns: all panels in one row while each stays data-pmin px wide (default 0.7 of the viewBox width), else 2
+     columns, else 1, and a panel never draws wider than 1.5x its viewBox. SVG text grows so it never renders under 12px. No inner scrolling at any width. */
+  .multiples { background: var(--soft); border-radius: 16px; padding: 18px 22px 16px; margin: 0; }
+  .multiples .mkey { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; color: var(--muted); }
+  .multiples .mkey b { color: var(--ink); font-weight: 600; }
+  /* Each panel spans 3 rows of a subgrid, so titles, drawings and outcome lines line up across a row even when a title wraps. */
+  .multiples .mgrid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 0 20px; }
+  .multiples .panel { min-width: 0; display: grid; grid-row: span 3; grid-template-rows: subgrid; align-content: start; margin-bottom: 18px; }
+  .multiples .panel svg { align-self: start; }
+  .multiples .ph { margin: 0 0 6px; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .multiples .panel svg, .multiples > svg.draw { display: block; width: 100%; height: auto; overflow: hidden; }
+  .multiples .out { margin: 8px 0 0; font-size: 15px; line-height: 1.45; color: var(--ink); }
+  .multiples .out b { font-weight: 700; } .multiples .out[data-v="stop"] b { color: var(--bad); } .multiples .out[data-v="pass"] b { color: var(--ok); }
+  /* .mnote: a line that holds for every panel (the rule, the formula), printed once under the grid, never once per panel. */
+  .multiples .mnote { margin: 12px 0 0; font-size: 15px; color: var(--ink); max-width: 70ch; } .multiples .mnote + .mnote { margin-top: 4px; }
+  .multiples .mnote.big { font-size: 17px; font-weight: 600; } .multiples .mnote.muted { color: var(--muted); }
+  .multiples .outs { margin: 10px 0 0; padding-left: 18px; font-size: 15px; color: var(--ink); }
+  .multiples .outs li::before { content: attr(data-label) ": "; font-weight: 600; }
+  .multiples.js > svg.draw, .multiples.js > .outs { display: none; }
+  .multiples svg text { font-size: var(--mfs, 13px); fill: var(--ink); paint-order: stroke; stroke: var(--soft); stroke-width: 4px; stroke-linejoin: round; }
+  .multiples svg text.sub { fill: var(--muted); }
+  .multiples .m-box { fill: var(--bg); stroke: var(--faint); stroke-width: 1.5; }
+  .multiples .m-maybe { stroke: var(--warn); stroke-dasharray: 5 3; fill: var(--warn-soft); }
+  .multiples .m-token { fill: var(--accent); } /* the case's marker, beside the box where it ends */
+  .multiples .m-wire { fill: none; stroke: var(--faint); stroke-width: 1.5; }
+  .multiples .is-diff:is(rect, circle, ellipse, polygon, path, line), .multiples .is-diff :is(rect, circle, ellipse, polygon, path, line) { stroke: var(--accent); stroke-width: 3; }
+  .multiples rect.is-diff, .multiples .is-diff rect { fill: var(--accent-soft); }
+  .multiples text.is-diff, .multiples .is-diff text { fill: var(--accent); font-weight: 700; }
+  .multiples .is-off:is(rect, circle, path, line), .multiples .is-off :is(rect, circle, path, line) { stroke-dasharray: 4 4; stroke: var(--faint); fill: none; }
+  .multiples text.is-off, .multiples .is-off text { fill: var(--muted); }
+  .multiples .xmark circle { fill: var(--bad); } .multiples .xmark path { stroke: var(--bg); stroke-width: 2.5; fill: none; }
+  .multiples .okmark circle { fill: var(--ok); } .multiples .okmark path { stroke: var(--bg); stroke-width: 2.5; fill: none; }
+  .multiples .xmark text { fill: var(--bad); font-weight: 700; } .multiples .okmark text { fill: var(--ok); font-weight: 700; }
+
+  /* Napkin: the whole model as one hand-drawn picture of at most 7 labeled parts (boxes plus arrow words), in DOM order 1..7.
+     It closes the page with the 5 facts as blanks; labels and blanks start empty with JS on and fill when clicked. */
+  .napkin { margin: 0; background: var(--soft); border-radius: 16px; padding: 20px 24px; }
+  /* Same crisp stroke as the hero (no hand-drawn filter). It keeps the hero's order and edges: a sequence there is a sequence here.
+     Every label has a halo in the color behind it (paint-order stroke), so no wire runs through text. */
+  .napkin .shape { fill: var(--bg); stroke: var(--faint); stroke-width: 1.5; }
+  .napkin .wire { fill: none; stroke: var(--faint); stroke-width: 1.5; }
+  .napkin .hot .shape { stroke: var(--accent); stroke-width: 2.5; fill: var(--accent-soft); }
+  .napkin text { fill: var(--ink); font-size: 16px; font-weight: 600; text-anchor: middle; dominant-baseline: middle;
+                 paint-order: stroke; stroke: var(--bg); stroke-width: 5px; stroke-linejoin: round; }
+  .napkin .hot text { stroke: var(--accent-soft); }
+  .napkin text.verb { font-size: 14px; font-weight: 500; fill: var(--body); stroke: var(--soft); }
+  .napkin .qm { display: none; fill: var(--muted); }
+  .napkin.quiz .part { cursor: pointer; } .napkin.quiz .part:focus { outline: none; } .napkin.quiz .part:focus .shape { stroke-dasharray: 5 4; }
+  .napkin.quiz .part:not(.shown):not(.fixed) .lbl { visibility: hidden; } .napkin.quiz .part:not(.shown):not(.fixed) .qm { display: inline; }
+  .napkin .part.fixed { cursor: default; }
+  /* Recall: one component. The napkin, then one numbered list, the 5 facts and then the whys (ol.deep continues the count).
+     A napkin part is a blank only when a fact blank shares its data-n, so the two count as one item. Every other part stays labeled.
+     The counter counts items; past 12 the template prints a red bar. */
+  .keep, .deep { margin: 18px 0 0; padding-left: 24px; display: grid; gap: 10px; font-size: 18px; color: var(--ink); }
+  .deep { margin-top: 10px; font-size: 17px; }
+  .keep li::marker, .deep li::marker { color: var(--accent); font-weight: 700; }
+  .deep .q { color: var(--body); }
+  .blank { border-radius: 4px; padding: 0 3px; }
+  .napkin.quiz .blank { cursor: pointer; background: var(--bg); border-bottom: 2px solid var(--accent); }
+  .napkin.quiz .blank:not(.shown) { color: transparent; user-select: none; }
+  .napkin.quiz .deep .blank:not(.shown) { display: inline-block; min-width: 9em; }
+  .napkin.quiz .blank.shown { background: var(--ok-soft); border-bottom-color: var(--ok); }
+  .blank:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .napkin .controls { margin-top: 14px; }
+
+
+  /* Hero story: the first-screen figure. One concrete case in 3 to 5 steps on one drawing (svg.board). Each step keeps the
+     previous step's state and names a hero box only when the case reaches it; the last step is the complete hero.
+     On any board element: data-on="1 2" shows it only on those steps, data-hot="3" paints it passed, data-stop="4" paints it
+     rejected, data-say="..." is the plain sentence it states (screen readers and budget.sh's states export).
+     data-from="dx dy" with data-enter="N" slides a copy in from its source when the reader steps forward into N.
+     Captions are .hs-caps > li, one per step, 20 words or fewer, each with data-src. They share one grid cell, so the figure
+     keeps one height on every step. JS builds Back, 1..N, Next in .hs-nav and keeps #hero-N in the URL.
+     With JS off the board shows step 1 and every caption is listed. With reduced motion every step is its own frame. */
+  .herostory { background: var(--soft); border-radius: 16px; padding: 18px 22px 16px; margin: 0;
+               display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 10px 28px; align-items: start; }
+  .herostory > .legend { grid-column: 1 / -1; }
+  .herostory .hs-board { min-width: 0; }
+  .herostory .board { display: block; width: 100%; max-width: 470px; height: auto; margin: 0 auto; overflow: visible; }
+  .herostory .hs-side { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; min-width: 0; }
+  .herostory .hs-nav { display: flex; flex-wrap: nowrap; gap: 5px; align-items: center; margin: 0; }
+  .herostory .hs-nav button { height: 32px; min-width: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg);
+                              color: var(--muted); font-size: 14px; font-weight: 700; box-shadow: none; }
+  .herostory .hs-nav button[aria-current="step"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .herostory .hs-nav button:disabled { opacity: .35; cursor: default; }
+  .herostory .hs-nav .hs-move { font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .herostory .hs-nav .hs-prev { margin-left: auto; }
+  .herostory .hs-caps { list-style: none; margin: 0; padding: 0; display: grid; }
+  .herostory .hs-caps > li { grid-area: 1 / 1; font-size: 17px; line-height: 1.45; color: var(--ink); }
+  .herostory .hs-caps > li::before { content: "Step " attr(data-n); display: block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .herostory:not(.js) .hs-caps { gap: 8px; } .herostory:not(.js) .hs-caps > li { grid-area: auto; }
+  .herostory.js .hs-caps > li:not(.now) { visibility: hidden; }
+  /* The guess sits under the caption and is optional. Question and result share one cell sized for the longest result. */
+  .herostory .ask { display: grid; margin: 0; font-size: 15px; color: var(--ink); }
+  .herostory .ask::before { content: none; }
+  .herostory .ask > * { grid-area: 1 / 1; }
+  .herostory .ask .hs-q b, .herostory .ask .res b { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-right: 6px; }
+  .herostory .ask .res b { font-size: 15px; letter-spacing: 0; text-transform: none; }
+  .herostory .ask .res[data-v="ok"] b { color: var(--ok); } .herostory .ask .res[data-v="bad"] b { color: var(--bad); }
+  .herostory .ask button { background: none; border: 0; padding: 0; color: var(--accent); font-size: 14px; margin-left: 6px; }
+  .herostory .ask .off, .herostory .ask.off { visibility: hidden; }
+  .herostory:not(.js) .ask { display: none; }
+  .herostory.asking [data-pick] { cursor: pointer; }
+  .herostory.asking [data-pick]:hover :is(rect, circle), .herostory.asking [data-pick]:focus :is(rect, circle) { stroke: var(--accent); stroke-dasharray: 5 4; }
+  .herostory [data-pick]:focus { outline: none; }
+  .herostory .g-pick > rect:first-child { stroke: var(--accent); stroke-width: 3; stroke-dasharray: 6 4; }
+  /* Reduced motion: every step is a frame (drawing plus caption), two a row on wide screens. */
+  .herostory.stacked { display: block; }
+  .herostory.stacked > :is(.hs-board, .hs-side) { display: none; }
+  .herostory .hs-frames { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px 24px; }
+  .herostory .hs-frame { margin: 0; min-width: 0; } .herostory .hs-frame .board { max-width: 420px; }
+  .herostory .hs-frame figcaption { margin-top: 6px; font-size: 15px; color: var(--ink); }
+  .herostory .hs-frame figcaption b { color: var(--accent); margin-right: 6px; }
+  @media (max-width: 760px) {
+    .herostory { grid-template-columns: minmax(0, 1fr); padding: 12px 12px 14px; }
+    .herostory .board { max-width: none; }
+    .herostory .hs-nav { justify-content: space-between; }
+  }
+  /* The board's marks. 14 viewBox units is the text floor: a 360-wide board renders at 0.9x or more at 390, so 12px or more. */
+  .herostory .board text { font-size: 14px; font-weight: 600; fill: var(--ink); paint-order: stroke; stroke: var(--soft); stroke-width: 4px; stroke-linejoin: round; }
+  .herostory .board text.m { fill: var(--muted); font-weight: 500; } .herostory .board text.c { text-anchor: middle; } .herostory .board text.e { text-anchor: end; }
+  /* A mark shows at once (visibility is not delayed) and fades in; a hidden mark fades, then leaves the accessibility tree. */
+  .herostory .board [data-on] { transition: opacity .35s ease, transform .5s cubic-bezier(.3,.7,.3,1); }
+  .herostory .board .off { opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility 0s linear .35s; }
+  .herostory:not(.js) .board [data-on]:not([data-on~="1"]) { display: none; }
+  .herostory .board .box rect, .herostory .board rect.box { fill: var(--bg); stroke: var(--faint); stroke-width: 1.5; }
+  /* A pick target around a label: invisible until a step paints it passed or rejected. */
+  .herostory .board rect.hit { fill: transparent; stroke: none; }
+  .herostory .board .is-hot rect, .herostory .board rect.is-hot { stroke: var(--ok); stroke-width: 2.5; }
+  .herostory .board .is-stop rect, .herostory .board rect.is-stop { stroke: var(--bad); stroke-width: 2.5; fill: var(--bad-soft); }
+  .herostory .board text.is-stop, .herostory .board .is-stop text { fill: var(--bad); } .herostory .board text.is-hot { fill: var(--ok); }
+  .herostory .board .wire { fill: none; stroke: var(--faint); stroke-width: 2; } .herostory .board .wire.is-hot, .herostory .board .wire.hot { stroke: var(--accent); stroke-width: 2.5; }
+  .herostory .board .wire.c1 { stroke: var(--c1); } .herostory .board .wire.c2 { stroke: var(--c2); } .herostory .board .wire.bad { stroke: var(--bad); }
+  .herostory .board .cut { stroke: var(--bad); stroke-width: 3; stroke-dasharray: 7 5; fill: none; }
+  .herostory .board .slot { fill: none; stroke: var(--faint); stroke-dasharray: 4 3; }
+  .herostory .board .cell rect { stroke-width: 2; } .herostory .board .cell text { font-size: 15px; font-weight: 800; text-anchor: middle; dominant-baseline: central; stroke-width: 0; }
+  .herostory .board .c0 rect { fill: var(--bg); stroke: var(--faint); } .herostory .board .c0 text { fill: var(--muted); }
+  .herostory .board .c1 rect { fill: var(--c1-soft); stroke: var(--c1); } .herostory .board .c1 text { fill: var(--c1); }
+  .herostory .board .c2 rect { fill: var(--c2-soft); stroke: var(--c2); } .herostory .board .c2 text { fill: var(--c2); }
+  .herostory .board .c3 rect { fill: var(--c3-soft); stroke: var(--c3); } .herostory .board .c3 text { fill: var(--c3); }
+  .herostory .board .chip text { stroke-width: 0; text-anchor: middle; dominant-baseline: central; font-weight: 800; }
+  .herostory .board .chip.c1 rect { fill: var(--c1); stroke: var(--c1); } .herostory .board .chip.c2 rect { fill: var(--c2); stroke: var(--c2); }
+  .herostory .board .chip.c1 text, .herostory .board .chip.c2 text { fill: var(--bg); }
+  .herostory .board .srv circle { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5; } .herostory .board .srv text { text-anchor: middle; dominant-baseline: central; stroke-width: 0; font-weight: 700; }
+  .herostory .board .crown { fill: var(--warn); stroke: var(--warn); stroke-linejoin: round; }
+  .herostory .board .commit { fill: none; stroke: var(--ok); stroke-width: 3; }
+  .herostory .board .ok circle { fill: var(--ok); } .herostory .board .bad circle { fill: var(--bad); }
+  .herostory .board :is(.ok, .bad) path { fill: none; stroke: var(--bg); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .herostory .board text.ok { fill: var(--ok); font-weight: 700; } .herostory .board text.bad { fill: var(--bad); font-weight: 700; }
+  .herostory .board .dot { fill: var(--bg); stroke: var(--faint); stroke-width: 1.5; } .herostory .board .dot.on { fill: var(--accent); stroke: var(--accent); }
+  .herostory .board .dot.bad { fill: var(--bad); stroke: var(--bad); }
+  .herostory .board .need { stroke: var(--ink); stroke-width: 2; stroke-dasharray: 3 2; }
+  .herostory .board .hatch { fill: url(#hatch); }
+  .herostory .board .draw { stroke-dasharray: 1; } .herostory .board .draw:not(.off) { animation: hs-draw .6s ease both; }
+  .herostory .board .pop { transform-box: fill-box; transform-origin: center; } .herostory .board .pop:not(.off) { animation: hs-pop .4s ease both; animation-delay: var(--d, 0s); }
+  @keyframes hs-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+  @keyframes hs-pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: none; } }
+
+  /* Template checks: a red bar above the broken element, so a screenshot catches it. */
+  .authorwarn { background: var(--bad); color: var(--bg); font: 600 14px/1.4 ui-monospace, Menlo, monospace; padding: 6px 10px; border-radius: 6px; }
+  section > :is(.guess, .napkin, .multi, .multiples, .core, .tbl) { margin-top: 20px; }
+  /* Phones: thinner figure padding leaves a tall SVG about 330px, so 13-unit text in a 340-wide viewBox stays at 12px or more. */
+  @media (max-width: 600px) {
+    :is(.core, .trace, .napkin, .guess, .stepper, .multiples) { padding-left: 12px; padding-right: 12px; }
+    code { white-space: normal; overflow-wrap: anywhere; }
+  }
+</style>
+</head>
+<body>
+<!-- Shared arrowheads. Markers live here, not inside a figure's SVG, because a display:none SVG (the hidden wide or tall copy) drops its markers. -->
+<svg class="defs" width="0" height="0" style="position: absolute" aria-hidden="true"><defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+  <marker id="arr-ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker>
+  <!-- Board arrowheads: one fixed size in board units (userSpaceOnUse), so a wire's width never changes its head. -->
+  <marker id="hs-arr" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--faint)"/></marker>
+  <marker id="hs-hot" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--accent)"/></marker>
+  <marker id="hs-c1" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--c1)"/></marker>
+  <marker id="hs-c2" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--c2)"/></marker>
+  <marker id="hs-bad" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--bad)"/></marker>
+  <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" style="fill: var(--bg)"/><rect width="5" height="10" style="fill: var(--warn-soft)"/></pattern>
+</defs></svg>
+<div class="page">
+<nav class="rail" aria-label="On this page">
+  <a href="#hero">Picture</a>
+  <a href="#s1">1 Three checks</a>
+  <a href="#s2">2 Blast radius</a>
+  <a href="#s3">3 The day</a>
+  <a href="#napkin">Keep</a>
+  <button class="theme" type="button">Dark</button>
+</nav>
+<main>
+
+<!-- First screen: eyebrow, claim H1 (2 lines), one lede of 2 lines with inline glosses, the ask, then the hero story
+     on step 1. No summary table, no question block. budget.sh fails when the hero's bottom passes 900px. -->
+<div class="eyebrow">Ticket TICKET-123 &middot; 2026-03-17</div>
+<h1>Gift cards fail at checkout because one config row leaves them out</h1>
+<!-- A term or code is glossed once, where the reader first meets it: wrap the term and its .gl in one data-gloss element.
+     Later uses need no gloss. Inside a figure, codes go in that figure's .legend instead. -->
+<p class="lede"><span data-gloss>CheckoutService <span class="gl">(the service that takes payment)</span></span> checks a <span data-gloss>PAY4 row <span class="gl">(a config list of allowed payment methods)</span></span>; adding <code>GiftCard</code> lets buyers through.</p>
+<p class="ask-line"><span class="pill bad">needs you</span> write access to the row (we get 403 today).</p>
+
+<!-- The hero story. One concrete case from the source, 3 to 5 steps, on one board that never moves its actors.
+     Step 1 shows on load with real values: the actors and the object the case is about (here the buyer and the row).
+     A check or box is named only on the step where the case reaches it. Each step keeps the previous step's marks
+     unless the case changes them. The last step is the complete hero: every box named, the case's outcome marked.
+     Caption: one .hs-caps li per step, 20 words or fewer, data-src naming the pack line. The board needs 14-unit text and a
+     viewBox about 360 wide, so it renders 12px or more at 390.
+     data-fact="1": fact 1's key words show on step 1 (the board or its caption). A deep item may name data-via="N", one click.
+     data-ask="N" (optional): the guess shows on step N-1 and asks where step N stops; picks are data-pick marks already named
+     by then, the answer is the pick with data-stop="N" (or data-end). -->
+<figure class="herostory" id="hero" data-fact="1" data-ask="4">
+  <div class="hs-board">
+  <svg class="board" viewBox="0 0 360 290" role="img" aria-label="A buyer's gift-card payment passes Shop app and AccountHub to CheckoutService, which checks the PAY4 row">
+    <g class="chip c1"><rect x="0" y="0" width="170" height="26" rx="13"/><text x="85" y="13">buyer: GiftCard</text></g>
+    <path class="wire" data-hot="1 2 3 4" d="M75,26 V44" marker-end="url(#hs-arr)"/>
+    <g class="box" data-pick="Shop app" data-hot="1 2 4"><rect x="0" y="46" width="150" height="40" rx="9"/><text x="12" y="71">Shop app</text></g>
+    <path class="wire" data-on="2 3 4" data-hot="2 4" d="M75,86 V104" marker-end="url(#hs-arr)"/>
+    <g class="box" data-on="2 3 4" data-pick="AccountHub" data-hot="2 4"><rect x="0" y="106" width="150" height="40" rx="9"/><text x="12" y="131">AccountHub</text></g>
+    <path class="wire" data-on="2 3 4" data-hot="2 4" d="M75,146 V164" marker-end="url(#hs-arr)"/>
+    <g class="box" data-on="2 3 4" data-pick="CheckoutService" data-hot="2 4"><rect x="0" y="166" width="150" height="40" rx="9"/><text x="12" y="191">CheckoutService</text></g>
+    <path class="wire" data-on="2 3 4" data-hot="2 4" d="M150,186 H186" marker-end="url(#hs-arr)"/>
+    <g class="box" data-pick="Ledger" data-end data-hot="4"><rect x="0" y="244" width="150" height="40" rx="9"/><text x="12" y="269">Ledger</text></g>
+    <path class="wire" data-on="4" data-hot="4" d="M75,206 V242" marker-end="url(#hs-arr)"/>
+    <!-- The object the case is about, drawn from step 1 with its real value: the row's allowed payment methods. -->
+    <g class="box" data-pick="PAY4 row" data-stop="2" data-hot="4"><rect x="190" y="46" width="170" height="196" rx="9"/></g>
+    <text x="202" y="70">PAY4 row</text>
+    <text class="m" x="202" y="96">Card</text><text class="m" x="202" y="118">Wallet</text><text class="m" x="202" y="140">Voucher</text>
+    <text class="m" x="202" y="162">COD</text><text class="m" x="202" y="184">BankTransfer</text>
+    <rect class="slot" data-on="1 2" x="200" y="198" width="150" height="26" rx="6" data-say="The row has no GiftCard entry"/>
+    <g class="cell c1" data-on="3 4" data-from="-200 -190" data-enter="3" data-say="The change appends GiftCard as a sixth payment method"><rect x="200" y="198" width="150" height="26" rx="6"/><text x="275" y="211">GiftCard</text></g>
+    <g class="bad" data-on="2" data-say="CheckoutService rejects: Payment method not allowed"><circle cx="190" cy="236" r="10"/><path d="M186,232 L194,240 M194,232 L186,240"/></g>
+    <text class="bad e" data-on="2" x="176" y="262">rejected</text>
+    <g class="ok" data-on="4" data-say="The buyer's payment passes CheckoutService"><circle cx="165" cy="264" r="10"/><path d="M160,264 L164,268 L170,260"/></g>
+  </svg>
+  </div>
+  <div class="hs-side">
+    <div class="scen hs-nav" role="group" aria-label="Story step"></div>
+    <ol class="hs-caps">
+      <li data-src="PLAN.md local test">A buyer pays for an order in the Shop app with a <code>GiftCard</code>.</li>
+      <li data-src="PLAN.md local test">CheckoutService finds no <code>GiftCard</code> in the row: &ldquo;Payment method not allowed&rdquo;.</li>
+      <li data-src="PLAN.md The exact change">The change appends <code>GiftCard</code> to the row, with no code change.</li>
+      <li data-src="PLAN.md local test">The method now matches, so CheckoutService passes and Ledger records it.</li>
+    </ol>
+    <p class="ask">The row now lists the buyer's method. Where does the payment end? Click a box.</p>
+  </div>
+  <!-- Legend slot: one <div><dt>code</dt><dd>plain words</dd></div> per code the board or captions print. -->
+  <dl class="legend"><div><dt>COD</dt><dd>cash on delivery, already in the row</dd></div></dl>
+</figure>
+
+<!-- A section exists only to hold a figure. Heading = the answer as a claim; caption = one sentence the figure cannot say.
+     A section figure with 2 to 4 scenarios is a .multiples: every scenario drawn at once, side by side, on one viewBox, so the
+     reader sees the contrast without a click. It takes no guess (every answer is on screen); the guess sits under the hero.
+     Keep toggles (trace, core) only where the order of states matters or there are more than 4 (see the shelf).
+     A chain of checks as multiples: name the gates once in .mkey, draw the same chain in every panel, and mark the gate
+     that stops each scenario with data-diff; data-off fades what it never reaches. The outcome line keeps the real message. -->
+<section id="s1">
+  <div class="num">01</div>
+  <h2>Prod and staging reject gift cards at different checks</h2>
+  <figure class="multiples" id="checks" data-fact="2">
+    <ol class="mkey"><li><b>1</b> Level check, needs LVL2</li><li><b>2</b> Code allowlist</li><li><b>3</b> PAY4 row</li><li><b>4</b> Payment recorded</li></ol>
+    <svg class="draw" viewBox="0 0 200 236" role="img" aria-label="Four checks in a row; each panel marks where the gift card stops">
+      <path class="m-wire" d="M60,48 V62 M60,108 V122 M60,168 V182"/>
+      <rect class="m-box m-maybe" x="20" y="10" width="80" height="38" rx="8"/><text x="60" y="34" text-anchor="middle">1</text>
+      <rect class="m-box" data-diff="prod" x="20" y="64" width="80" height="44" rx="8"/><text x="60" y="91" text-anchor="middle">2</text>
+      <rect class="m-box" data-diff="staging" data-off="prod" x="20" y="124" width="80" height="44" rx="8"/><text x="60" y="151" text-anchor="middle">3</text>
+      <rect class="m-box" data-diff="after" data-off="prod staging" x="20" y="184" width="80" height="44" rx="8"/><text x="60" y="211" text-anchor="middle">4</text>
+      <g class="xmark" data-on="prod" transform="translate(118 86)"><circle r="9"/><path d="M-3.5,-3.5 L3.5,3.5 M3.5,-3.5 L-3.5,3.5"/><text x="16" y="5">stops</text></g>
+      <g class="xmark" data-on="staging" transform="translate(118 146)"><circle r="9"/><path d="M-3.5,-3.5 L3.5,3.5 M3.5,-3.5 L-3.5,3.5"/><text x="16" y="5">stops</text></g>
+      <g class="okmark" data-on="after" transform="translate(118 206)"><circle r="9"/><path d="M-4,0 L-1,3 L4,-3"/><text x="16" y="5">paid</text></g>
+      <text class="sub" x="118" y="34">may reject</text>
+    </svg>
+    <ol class="outs">
+      <li data-s="prod" data-label="Prod today" data-v="stop"><b>Stops at 2:</b> &ldquo;gift cards are not supported&rdquo;</li>
+      <li data-s="staging" data-label="Staging today" data-v="stop"><b>Stops at 3:</b> &ldquo;Payment method not allowed&rdquo;</li>
+      <li data-s="after" data-label="After both fixes" data-v="pass"><b>Reaches 4:</b> recorded, if check 1 passes (inferred)</li>
+    </ol>
+    <dl class="legend"><div><dt>LVL2</dt><dd>a verification level AccountHub reads from Roster, the account store</dd></div></dl>
+  </figure>
+  <p class="cap">Check 1 is unread code, so it stays dashed in every panel.</p>
+  <details><summary><b>Every check's message and source file</b> &middot; 3 rows</summary><div class="tbl"><table><tbody><tr><td>check</td><td>message</td><td>file</td></tr></tbody></table></div></details>
+</section>
+
+<!-- Blast radius as multiples: a bad change against today and the fix, one panel each. The fact (what a bad row breaks) is
+     printed in its panel at load. data-diff with no value marks the row in every panel, since its content is what differs. -->
+<section id="s2">
+  <div class="num">02</div>
+  <h2>A malformed row breaks every payment method, not only gift cards</h2>
+  <figure class="multiples" id="blast" data-fact="3">
+    <svg class="draw" viewBox="0 0 300 196" role="img" aria-label="One PAY4 row feeds gift-card and other payments; past orders never read it">
+      <path class="m-wire" d="M122,98 L156,34 M122,98 H156"/>
+      <rect class="m-box" data-diff x="0" y="70" width="122" height="56" rx="8"/>
+      <text data-diff data-on="bad" x="8" y="103">fails to parse</text><text data-diff data-on="today" x="8" y="103">no GiftCard</text><text data-diff data-on="good" x="8" y="103">valid list</text>
+      <rect class="m-box" x="156" y="10" width="144" height="48" rx="8"/><text x="170" y="39">Gift cards</text>
+      <rect class="m-box" x="156" y="74" width="144" height="48" rx="8"/><text x="170" y="103">Other methods</text>
+      <rect class="m-box" x="156" y="138" width="144" height="48" rx="8"/><text x="170" y="167">Past orders</text>
+      <g class="xmark" data-on="bad today" transform="translate(156 34)"><circle r="8"/><path d="M-3,-3 L3,3 M3,-3 L-3,3"/></g>
+      <g class="xmark" data-on="bad" transform="translate(156 98)"><circle r="8"/><path d="M-3,-3 L3,3 M3,-3 L-3,3"/></g>
+      <g class="okmark" data-on="good" transform="translate(156 34)"><circle r="8"/><path d="M-4,0 L-1,3 L4,-3"/></g>
+      <g class="okmark" data-on="today good" transform="translate(156 98)"><circle r="8"/><path d="M-4,0 L-1,3 L4,-3"/></g>
+    </svg>
+    <ol class="outs">
+      <li data-s="bad" data-label="Malformed row" data-v="stop"><b>2 fail:</b> gift cards and every other method; past orders are untouched.</li>
+      <li data-s="today" data-label="Today's row" data-v="stop"><b>1 fails:</b> only gift-card payments.</li>
+      <li data-s="good" data-label="Fixed row" data-v="pass"><b>0 fail:</b> both payment paths pass.</li>
+    </ol>
+    <dl class="legend"></dl>
+  </figure>
+</section>
+
+<!-- Not every figure takes a guess. A timeline has no stop point, so it gets none. A static figure shows its facts by default.
+     One figure may hold two facts (data-fact="4 5") when they share a picture. A blocker is drawn into the step it gates.
+     data-t on a block is its time; under 600px each lane turns into a list that prints it. -->
+<section id="s3">
+  <div class="num">03</div>
+  <h2>Nothing moves until we can write the row; prod waits for 11:30</h2>
+  <div class="tl" id="day" style="--span: 480" data-fact="4 5">
+    <div class="axis"><span style="--at: 0">08:00</span><span style="--at: 180">11:00</span><span style="--at: 360">14:00</span><span style="--at: 480">16:00</span></div>
+    <div class="lane" data-label="Blocker"><div class="blk bad" data-t="08:00" style="--from: 0; --to: 30">403</div><span class="note" style="--at: 30">needs write access to the row</span></div>
+    <div class="lane" data-label="Staging"><div class="blk info" data-t="08:30" style="--from: 30; --to: 90">R1-3</div><div class="blk info" data-t="09:30" style="--from: 90; --to: 210">R4 2 h soak</div></div>
+    <div class="lane" data-label="Prod"><div class="blk info" data-t="11:30" style="--from: 210; --to: 360">Promote, then gift-card test</div><div class="blk cond" data-t="14:20" style="--from: 380; --to: 480">Rollback, only on no-go</div></div>
+    <div class="gonogo" style="--at: 210"><span>go / no-go 11:30</span></div>
+  </div>
+  <!-- A .tl or other div figure takes its legend as the next element. -->
+  <dl class="legend"><div><dt>R1-3</dt><dd>rollout steps 1 to 3: dry run, promote, read back</dd></div><div><dt>R4</dt><dd>rollout step 4, watch errors</dd></div></dl>
+  <details><summary><b>Commands, staging then prod</b> &middot; 2 lines</summary><pre>paycfg promote -f row.json -d   # dry run
+paycfg promote -f row.json      # real</pre></details>
+</section>
+
+<!-- Shelf: one of each remaining component. A real section holds one figure; delete this section. -->
+<section id="shelf">
+  <div class="num">SHELF</div>
+  <h2>Remaining components</h2>
+  <!-- Toggles stay only where order matters or past 4 states. A trace runs one token through gates under the chosen scenario
+       and stops red at the first gate that says no; data-ask adds the in-figure guess. This one is shown with 3 states for brevity. -->
+  <figure class="trace" id="checks-toggle" data-ask="staging">
+    <div class="scen" role="group" aria-label="Scenario">
+      <button type="button" data-s="prod">Prod today</button><button type="button" data-s="staging">Staging today</button><button type="button" data-s="after">After both fixes</button>
+      <button type="button" class="replay">Replay</button>
+    </div>
+    <p class="ask">Staging already has the code fix. Where does staging stop the gift card? Click it.</p>
+    <div class="track">
+      <div class="gate"><b>1 Level check</b><small>reads the level</small>
+        <ul class="outs"><li data-s="prod" data-v="maybe">may reject (inferred)</li><li data-s="staging" data-v="maybe">may reject (inferred)</li><li data-s="after" data-v="maybe">may reject (inferred)</li></ul></div>
+      <div class="edge">calls</div>
+      <div class="gate"><b>2 Code allowlist</b><small data-ok-label="GiftCard allowed">method allowed?</small>
+        <ul class="outs"><li data-s="prod" data-v="stop">the real message, quoted</li></ul></div>
+      <div class="edge">looks up</div>
+      <div class="gate"><b>3 PAY4 row</b><small data-ok-label="GiftCard listed">method listed?</small>
+        <ul class="outs"><li data-s="staging" data-v="stop">its real message, quoted</li></ul></div>
+      <div class="edge"></div>
+      <div class="gate end"><b>Ledger</b><small>records payment</small>
+        <ul class="outs"><li data-s="after" data-v="maybe">recorded, if check 1 passes</li></ul></div>
+    </div>
+    <p class="verdict" aria-live="polite"></p>
+    <dl class="legend"></dl>
+  </figure>
+  <!-- Guess a quantity only when its size is the point (how many files, how long until). Never a date, id, or name. -->
+  <figure class="guess" style="--min: 0; --max: 60" data-unit="min">
+    <p class="ask">How long after a promote does CheckoutService see the new row? Drag, then Check.</p>
+    <div class="scale"><span class="mk truth" style="--at: 10">10 min refresh</span><span class="mk" style="--at: 40">40 min: end of watch window</span></div>
+    <div class="ends"><span>0 min</span><span>60 min</span></div>
+  </figure>
+  <div class="stepper">
+    <div class="nodes">
+      <div class="node"><b>Build</b><small>new row version</small></div>
+      <div class="edge"></div>
+      <div class="node"><b>Promote</b><small>label moves</small></div>
+      <div class="edge"></div>
+      <div class="node"><b>Refresh</b><small>Checkout rereads</small></div>
+    </div>
+    <ol class="why"><li>A new version holds the edited row.</li><li>The stage label points at it.</li><li>CheckoutService picks it up on its next read.</li></ol>
+    <dl class="legend"></dl>
+    <div class="controls"><button type="button" data-act="play">Play</button><button type="button" data-act="prev">Back</button><button type="button" data-act="next">Next</button></div>
+  </div>
+  <!-- Tabs may carry data-s like scenario buttons, so a deep item can name one with data-via. -->
+  <div class="tabs" id="stages">
+    <div role="tablist"><button role="tab" data-s="staging" aria-selected="true">Staging</button><button role="tab" data-s="prod">Prod</button></div>
+    <div role="tabpanel"><dl class="facts"><dt>label</dt><dd><code>value</code></dd></dl></div>
+    <div role="tabpanel" hidden><dl class="facts"><dt>label</dt><dd><code>value</code></dd></dl></div>
+  </div>
+  <div class="multi"><div><h3>Staging <span class="pill ok">ready</span></h3><dl class="facts"><dt>field</dt><dd><code>value</code></dd></dl></div><div><h3>Prod <span class="pill bad">missing</span></h3><dl class="facts"><dt>field</dt><dd><code>value</code></dd></dl></div></div>
+  <div class="diff"><div class="del">- [a, b]</div><div class="add">+ [a, b, <mark>c</mark>]</div></div>
+  <div class="tbl"><table class="clip"><thead><tr><th>Col</th></tr></thead><tbody><tr><td>row</td></tr></tbody></table></div>
+</section>
+
+<section id="napkin">
+  <div class="num">KEEP</div>
+  <h2>What to keep</h2>
+  <p class="cap">Say each blank, then click it.</p>
+  <!-- Recall: one component, at most 12 items. An item is one blank the reader fills; a napkin part and the fact blank that
+       share a data-n are one item. Parts with no matching blank stay labeled and count nothing.
+       The napkin: at most 7 .part groups (boxes plus arrow words), numbered 1..7 in DOM order, using the page's names.
+       It keeps the hero's order and edges: here the checks run in sequence inside CheckoutService, as in the trace, never side by side.
+       .hot marks the part this change touches. Unlabeled wires and the group frame sit outside any .part.
+       Two drawings, .wide and .tall; a part with the same data-n in both fills together. -->
+  <figure class="napkin recall">
+    <div class="frame">
+    <svg class="wide" viewBox="0 0 832 150" role="img" aria-label="A buyer pays CheckoutService by gift card; it checks the code allowlist, then the PAY4 row, then Ledger records the payment.">
+      <rect x="236" y="14" width="428" height="122" rx="14" fill="none" stroke="var(--faint)" stroke-dasharray="5 4"/><text x="268" y="32" class="verb">CheckoutService</text>
+      <g class="part" data-n="1"><rect class="shape" x="10" y="50" width="130" height="60" rx="10"/><text class="lbl" x="75" y="80">Buyer</text></g>
+      <g class="part" data-n="2"><path class="wire" d="M142 80 H252" marker-end="url(#arr)"/><text class="lbl verb" x="194" y="62">uses gift card</text></g>
+      <g class="part" data-n="3"><rect class="shape" x="256" y="50" width="170" height="60" rx="10"/><text class="lbl" x="341" y="80">Code allowlist</text></g>
+      <path class="wire" d="M428 80 H470" marker-end="url(#arr)"/>
+      <g class="part hot" data-n="4"><rect class="shape" x="474" y="50" width="170" height="60" rx="10"/><text class="lbl" x="559" y="80">PAY4 row</text></g>
+      <path class="wire" d="M646 80 H690" marker-end="url(#arr)"/>
+      <g class="part" data-n="5"><rect class="shape" x="694" y="50" width="134" height="60" rx="10"/><text class="lbl" x="761" y="80">Ledger</text></g>
+    </svg>
+    <svg class="tall" viewBox="0 0 340 420" role="img" aria-label="The same model drawn top to bottom">
+      <rect x="40" y="128" width="260" height="196" rx="14" fill="none" stroke="var(--faint)" stroke-dasharray="5 4"/><text x="76" y="146" class="verb">CheckoutService</text>
+      <g class="part" data-n="1"><rect class="shape" x="80" y="10" width="180" height="56" rx="10"/><text class="lbl" x="170" y="38">Buyer</text></g>
+      <g class="part" data-n="2"><path class="wire" d="M170 68 V158" marker-end="url(#arr)"/><text class="lbl verb" x="170" y="104">uses gift card</text></g>
+      <g class="part" data-n="3"><rect class="shape" x="80" y="162" width="180" height="56" rx="10"/><text class="lbl" x="170" y="190">Code allowlist</text></g>
+      <path class="wire" d="M170 220 V250" marker-end="url(#arr)"/>
+      <g class="part hot" data-n="4"><rect class="shape" x="80" y="254" width="180" height="56" rx="10"/><text class="lbl" x="170" y="282">PAY4 row</text></g>
+      <path class="wire" d="M170 312 V352" marker-end="url(#arr)"/>
+      <g class="part" data-n="5"><rect class="shape" x="80" y="356" width="180" height="56" rx="10"/><text class="lbl" x="170" y="384">Ledger</text></g>
+    </svg>
+    </div>
+    <!-- The 5 facts, written before the page was built, in page order. data-fact="N" points at the figure whose load state shows it.
+         Each .blank's words must be visible in that figure with no click. data-n on a blank ties it to the napkin part with the
+         same label, so filling one fills both. With JS off every word shows. -->
+    <ol class="keep">
+      <li data-fact="1">Today CheckoutService rejects a gift card at the <span class="blank" data-n="4">PAY4 row</span>.</li>
+      <li data-fact="2">In prod the <span class="blank" data-n="3">code allowlist</span> says no first.</li>
+      <li data-fact="3">A malformed row also breaks <span class="blank">every other method</span> at checkout.</li>
+      <li data-fact="4">Prod waits for the <span class="blank">go / no-go</span> at <span class="blank">11:30</span>.</li>
+      <li data-fact="5">Nothing starts until we get <span class="blank">write access</span> to the row.</li>
+    </ol>
+    <!-- Whys: the deep items that ask what breaks without a rule, one line each, numbered on from the facts (start="6").
+         The answer is a .blank whose words print as a label at the box where the failure happens. data-deep is that figure's id;
+         data-via is the one button (data-s) to click there, or absent for the load state. Facts plus whys stay at 12 or fewer. -->
+    <ol class="deep" start="6">
+      <li data-deep="day"><span class="q">Why does prod wait until 11:30?</span> <span class="blank">2 h soak</span></li>
+      <li data-deep="hero" data-via="2"><span class="q">Without GiftCard in the row, what fails?</span> <span class="blank">Payment method not allowed</span></li>
+      <li data-deep="checks" data-via="after"><span class="q">Without a gift-card test, which check stays unproven?</span> <span class="blank">check 1</span></li>
+    </ol>
+    <div class="controls"><button type="button" data-act="all">Show all</button><span class="count"></span></div>
+  </figure>
+</section>
+
+</main>
+</div>
+<script>
+/* Progressive enhancement only: the page reads fully without this. */
+(() => {
+  const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Template checks print a red bar above the broken element, so a screenshot catches them. Each message prints once.
+  const warned = new Set();
+  const warn = (el, msg) => { if (warned.has(msg)) return; warned.add(msg); console.warn(msg, el); el.before(Object.assign(document.createElement("p"), { className: "authorwarn", textContent: "Template check: " + msg })); };
+  const norm = (t) => t.replace(/[‘’]/g, "'").replace(/\s+/g, " ").trim().toLowerCase();
+  const has = (el, attr, s) => (el.getAttribute(attr) || "").split(/\s+/).includes(s);
+
+  // Pass text: a sublabel with data-ok-label shows it while its core box is green (.is-hot) or its trace gate passed.
+  const okLabels = (fig) => $$("[data-ok-label]", fig).forEach((el) => {
+    if (el._orig == null) el._orig = el.textContent;
+    const box = el.closest(".box, .gate"), ok = !!box && (box.classList.contains("is-hot") || box.dataset.v === "pass");
+    el.textContent = ok ? el.dataset.okLabel : el._orig;
+  });
+
+  // A figure's text in scenario s (default: its first button), read from the markup, so it does not depend on animation timing:
+  // no drawer, no guess line, no other scenario's marks, pass labels applied. The facts use the load state; deep items use data-via.
+  const loadText = (fig, s) => {
+    // Hero story: the load state is step 1; data-via names one other step (one click on its number).
+    if (fig.matches(".herostory")) { const n = s || "1", c = fig.cloneNode(true);
+      $$(".hs-frames, .hs-nav, .ask, details, script, .authorwarn", c).forEach((x) => x.remove());
+      $$("[data-on]", c).forEach((x) => { if (!has(x, "data-on", n)) x.remove(); });
+      $$(".hs-caps > li", c).forEach((li, i) => { if (String(i + 1) !== n) li.remove(); });
+      return c.textContent; }
+    // Multiples: every panel is on screen at load; data-via names one panel and reads only it, with no click.
+    if (fig.matches(".multiples.js")) { const m = fig.cloneNode(true); $$(".panel", m).forEach((p) => { if (s && p.dataset.s !== s) p.remove(); });
+      $$("details, script, .authorwarn", m).forEach((x) => x.remove()); return m.textContent; }
+    const first = fig.querySelector(".scen [data-s], [role=tab][data-s]"), c = fig.cloneNode(true);
+    s = s || (first && first.dataset.s);
+    if (fig.matches(".tabs")) {
+      const i = Math.max(0, $$("[role=tab]", c).findIndex((t) => t.dataset.s === s));
+      $$("[role=tabpanel]", c).forEach((p, k) => (k === i ? p.removeAttribute("hidden") : p.remove()));
+    }
+    $$(".box[data-hot] [data-ok-label]", c).forEach((el) => { if (has(el.closest(".box"), "data-hot", s)) el.textContent = el.dataset.okLabel; });
+    let stopped = false;
+    $$(".gate", c).forEach((g) => {
+      const li = g.querySelector(`.outs li[data-s="${s}"]`), v = li ? li.dataset.v : "pass";
+      if (!stopped && v === "pass") $$("[data-ok-label]", g).forEach((el) => (el.textContent = el.dataset.okLabel));
+      if (v === "stop") stopped = true;
+    });
+    $$("details, .ask, .scen, [role=tablist], .controls, script, [hidden], .why li:not(:first-child), .guess .mk, .authorwarn", c).forEach((x) => x.remove());
+    $$("[data-on]", c).forEach((x) => { if (!has(x, "data-on", s)) x.remove(); });
+    $$(".says li[data-s], .outs li[data-s]", c).forEach((x) => { if (x.dataset.s !== s) x.remove(); });
+    return c.textContent;
+  };
+
+  // Multiples: draw(state) copies the one source drawing per scenario, so every panel shares its viewBox and scale.
+  // A page may add explainerDraw["<figure id>"] = (state, svg) => {...} to draw a panel in code after the marks are applied.
+  $$(".multiples").forEach((fig) => {
+    const src = fig.querySelector(":scope > svg.draw"), list = fig.querySelector(":scope > .outs"), outs = list ? $$(":scope > li[data-s]", list) : [];
+    if (!src || !outs.length) return warn(fig, 'multiples needs one <svg class="draw" viewBox> and an .outs list with one <li data-s data-label> per panel');
+    if (outs.length < 2 || outs.length > 4) warn(fig, `multiples has ${outs.length} panels; use 2 to 4, and keep toggles past 4 states or where order matters`);
+    if (fig.dataset.ask) warn(fig, "a multiples figure shows every outcome at once, so it takes no guess; keep the guess under the hero");
+    const vb = src.getAttribute("viewBox"), vbw = src.viewBox.baseVal.width, custom = (window.explainerDraw || {})[fig.id];
+    const draw = (s) => {
+      const svg = src.cloneNode(true);
+      svg.removeAttribute("class"); svg.removeAttribute("id"); svg.setAttribute("viewBox", vb);
+      $$("[data-on]", svg).forEach((el) => { if (!has(el, "data-on", s)) el.remove(); });
+      $$("[data-diff]", svg).forEach((el) => el.classList.toggle("is-diff", !el.getAttribute("data-diff") || has(el, "data-diff", s)));
+      $$("[data-off]", svg).forEach((el) => el.classList.toggle("is-off", has(el, "data-off", s)));
+      if (custom) custom(s, svg);
+      return svg;
+    };
+    const grid = Object.assign(document.createElement("div"), { className: "mgrid" });
+    const panels = outs.map((li) => {
+      const p = Object.assign(document.createElement("div"), { className: "panel" }), s = li.dataset.s;
+      const head = Object.assign(document.createElement("p"), { className: "ph", textContent: li.dataset.label || s });
+      const out = Object.assign(document.createElement("p"), { className: "out", innerHTML: li.innerHTML });
+      if (li.dataset.v) out.dataset.v = li.dataset.v;
+      const svg = draw(s); svg.setAttribute("aria-label", `${head.textContent}: ${li.textContent.trim()}`);
+      p.dataset.s = s; p.append(head, svg, out); grid.append(p); return p;
+    });
+    src.replaceWith(grid); list.remove();
+    fig.classList.add("js");
+    // Caps: 4 labels a panel, 12 a figure (SVG text with a letter, plus each .mkey entry); one accent element and one outcome per panel.
+    const labels = (root) => $$("text", root).filter((t) => /\p{L}/u.test(t.textContent)).length;
+    const total = $$(".mkey > li", fig).length + panels.reduce((a, p) => a + labels(p), 0);
+    if (total > 12) warn(fig, `multiples prints ${total} labels; the cap is 12 a figure (name shared parts once in .mkey)`);
+    panels.forEach((p) => {
+      if (labels(p) > 4) warn(fig, `panel "${p.dataset.s}" prints ${labels(p)} labels; the cap is 4`);
+      if (!p.querySelector(".is-diff")) warn(fig, `panel "${p.dataset.s}" has no data-diff element, so nothing shows what differs`);
+      if (!p.querySelector(".out").textContent.trim()) warn(fig, `panel "${p.dataset.s}" has no outcome line`);
+    });
+    const fit = () => {
+      const W = grid.clientWidth, gap = 20, n = panels.length, pmin = +fig.dataset.pmin || vbw * 0.7;
+      const cols = [n, ...(n > 2 ? [2] : []), 1].find((c) => (W - gap * (c - 1)) / c >= pmin) || 1;
+      const pw = Math.min((W - gap * (cols - 1)) / cols, vbw * 1.5); // a lone panel never grows past 1.5x its viewBox
+      panels.forEach((p) => (p.querySelector("svg").style.maxWidth = vbw * 1.5 + "px"));
+      grid.style.setProperty("--cols", cols);
+      fig.style.setProperty("--mfs", Math.max(+fig.dataset.fs || 13, Math.ceil((124 * vbw) / pw) / 10) + "px"); // data-fs: a larger floor in viewBox units
+    };
+    fit(); addEventListener("resize", fit);
+  });
+
+
+  // Hero story: one case told in 3 to 5 steps on one board. Step 1 paints at load; Back, 1..N, Next and #hero-N move between
+  // steps instantly, so the drawing never flickers through the steps in between. Every step keeps the figure's height.
+  $$(".herostory").forEach((fig) => {
+    const board = fig.querySelector(":scope > .hs-board > svg.board"), caps = $$(".hs-caps > li", fig), N = caps.length;
+    const nav = fig.querySelector(".hs-nav");
+    if (!board || !nav) return warn(fig, 'hero story needs <div class="hs-board"><svg class="board" viewBox></div> and a .hs-nav in .hs-side');
+    if (N < 3 || N > 5) warn(fig, `hero story has ${N} steps; tell the case in 3 to 5`);
+    const words = (t) => (t.match(/[A-Za-z0-9][^\s]*/g) || []).length;
+    caps.forEach((li, i) => { li.dataset.n = i + 1;
+      if (!li.dataset.src) warn(fig, `hero step ${i + 1} has no data-src naming its source line`);
+      if (words(li.textContent) > 20) warn(fig, `hero step ${i + 1}'s caption has ${words(li.textContent)} words; the cap is 20`); });
+    $$("[data-on], [data-hot], [data-stop]", board).forEach((el) => ["data-on", "data-hot", "data-stop"].forEach((a) => {
+      const v = el.getAttribute(a); if (v != null && v.split(/\s+/).some((k) => !(+k >= 1 && +k <= N))) warn(fig, `a board mark has ${a}="${v}", outside steps 1-${N}`); }));
+    const on = (el, a, n) => has(el, a, String(n));
+    // Copies slide in from data-from (dx dy, board units) when the reader steps forward into a step listed in data-enter.
+    const slide = (el) => { const [dx, dy] = el.dataset.from.split(/[\s,]+/).map(Number);
+      el.style.transition = "none"; el.style.transform = `translate(${dx}px, ${dy}px)`; el.getBoundingClientRect(); el.style.transition = ""; el.style.transform = ""; };
+    const paint = (root, n, prev) => {
+      $$("[data-on]", root).forEach((el) => { const show = on(el, "data-on", n), was = !el.classList.contains("off");
+        el.classList.toggle("off", !show);
+        if (show && !was && prev === n - 1 && !reduce && el.dataset.from && on(el, "data-enter", n)) slide(el); });
+      // A hot wire takes the accent arrowhead; markers are attributes, so CSS alone cannot swap them.
+      $$("[data-hot]", root).forEach((el) => { const hot = on(el, "data-hot", n); el.classList.toggle("is-hot", hot);
+        if (el.hasAttribute("marker-end")) { if (el._mk == null) el._mk = el.getAttribute("marker-end"); el.setAttribute("marker-end", hot ? "url(#hs-hot)" : el._mk); } });
+      $$("[data-stop]", root).forEach((el) => el.classList.toggle("is-stop", on(el, "data-stop", n)));
+    };
+    // What a step's drawing states in words: the data-say of every mark it shows (screen readers, budget.sh's states export).
+    const said = (root, n) => $$("[data-say]", root).filter((el) => {
+      for (let e = el; e && e !== root; e = e.parentElement) if (e.hasAttribute && e.hasAttribute("data-on") && !on(e, "data-on", n)) return false; return true; }).map((el) => el.dataset.say);
+    const mk = (text, cls, label) => { const b = Object.assign(document.createElement("button"), { type: "button", textContent: text, className: cls || "" }); if (label) b.setAttribute("aria-label", label); return b; };
+    const prevB = mk("‹", "hs-move hs-prev", "Back one step"), nextB = mk("Next ›", "hs-move", "Next step");
+    const nums = caps.map((li, i) => { const b = mk(String(i + 1), "", `Step ${i + 1}: ${li.textContent.trim()}`); b.dataset.s = String(i + 1); return b; });
+    nav.textContent = ""; nav.append(...nums, prevB, nextB);
+    let cur = 0;
+    const ask = fig.querySelector(".ask"), askN = +fig.dataset.ask || 0, hooks = [];
+    const set = (n, why = "load") => {
+      n = Math.max(1, Math.min(N, n)); const prev = cur; if (n === cur && why !== "force") return; cur = n;
+      paint(board, n, prev);
+      caps.forEach((li, i) => li.classList.toggle("now", i === n - 1));
+      nums.forEach((b, i) => (i === n - 1 ? b.setAttribute("aria-current", "step") : b.removeAttribute("aria-current")));
+      prevB.disabled = n === 1; nextB.disabled = n === N;
+      board.setAttribute("aria-label", `Step ${n} of ${N}. ${said(board, n).join(". ")}`);
+      hooks.forEach((h) => h(n));
+      // A srcdoc or sandboxed frame refuses replaceState; the state still changes.
+      if (why === "user") try { history.replaceState(null, "", "#hero-" + n); } catch (e) {}
+    };
+    nums.forEach((b, i) => (b.onclick = () => set(i + 1, "user")));
+    prevB.onclick = () => set(cur - 1, "user"); nextB.onclick = () => set(cur + 1, "user");
+    fig.addEventListener("keydown", (e) => { if (e.target.closest("[data-pick]")) return;
+      if (e.key === "ArrowRight") { set(cur + 1, "user"); e.preventDefault(); } if (e.key === "ArrowLeft") { set(cur - 1, "user"); e.preventDefault(); } });
+
+    // The optional guess, under the caption. It asks on the step before data-ask, about where that next step stops.
+    // A pick (or Show me) moves to the asked step and grades it there. Any step change clears the feedback.
+    if (askN && ask) {
+      if (askN < 2 || askN > N) warn(fig, `data-ask="${askN}" must name step 2 to ${N}; the question shows on the step before it`);
+      const picks = $$("[data-pick]", board), name = (p) => p.dataset.pick;
+      const stops = picks.filter((p) => on(p, "data-stop", askN)), answer = stops.length ? stops : picks.filter((p) => p.hasAttribute("data-end"));
+      if (!answer.length) warn(fig, `data-ask="${askN}": no data-pick element has data-stop="${askN}" and none has data-end`);
+      const names = [...new Set(answer.map(name))], list = names.join(" and ");
+      answer.forEach((p) => p.setAttribute("data-answer", "")); // shoot.sh and budget.sh click these
+      const q = Object.assign(document.createElement("span"), { className: "hs-q" }), res = Object.assign(document.createElement("span"), { className: "res" });
+      q.innerHTML = "<b>Guess</b>"; q.append(ask.textContent.trim() + " ");
+      const show = mk("Show me", "showme"); q.append(show);
+      // The result cell is sized for the longest result it can print, so a guess never changes the figure's height.
+      const longest = picks.map(name).sort((a, b) => b.length - a.length)[0] || "";
+      const sizer = Object.assign(document.createElement("span"), { className: "off", textContent: `Not quite. You picked ${longest}; it stops at ${list}.` });
+      sizer.setAttribute("aria-hidden", "true");
+      ask.textContent = ""; ask.setAttribute("aria-live", "polite"); ask.append(q, res, sizer);
+      const result = (v, head, text) => { if (v) res.dataset.v = v; else delete res.dataset.v; res.innerHTML = ""; res.append(Object.assign(document.createElement("b"), { textContent: head }), " " + text); };
+      const clear = () => { res.textContent = ""; delete res.dataset.v; picks.forEach((p) => p.classList.remove("g-pick")); };
+      hooks.push((n) => { clear(); const asking = n === askN - 1; fig.classList.toggle("asking", asking); q.classList.toggle("off", !asking); res.classList.remove("off"); });
+      const grade = (p) => { const mine = p ? name(p) : null; set(askN, "user");
+        if (p) picks.filter((x) => name(x) === mine).forEach((x) => x.classList.add("g-pick"));
+        if (!mine) result("", "Answer:", list + ".");
+        else if (names.includes(mine)) result("ok", "Right:", list + ".");
+        else result("bad", "Not quite.", `You picked ${mine}; it stops at ${list}.`); };
+      picks.forEach((p) => { p.setAttribute("tabindex", "0"); p.setAttribute("role", "button"); p.setAttribute("aria-label", `Guess: ${name(p)}`);
+        const pick = () => { if (fig.classList.contains("asking")) grade(p); };
+        p.addEventListener("click", pick); p.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } }); });
+      show.onclick = () => grade(null);
+    } else if (ask) ask.remove();
+
+    window.heroStory = { N, paint, said, set, board, caps, fig, current: () => cur };
+    if (reduce) {
+      // Stacked frames: each step's drawing in its state with its caption; the stepper goes away and every answer shows.
+      const frames = Object.assign(document.createElement("div"), { className: "hs-frames" });
+      caps.forEach((li, i) => { const f = Object.assign(document.createElement("figure"), { className: "hs-frame" }), c = board.cloneNode(true);
+        paint(c, i + 1); c.setAttribute("aria-label", said(board, i + 1).join(". "));
+        const cap = document.createElement("figcaption"); cap.append(Object.assign(document.createElement("b"), { textContent: String(i + 1) }), li.textContent.trim());
+        f.append(c, cap); frames.append(f); });
+      fig.querySelector(".hs-board").after(frames); fig.classList.add("stacked");
+    }
+    fig.classList.add("js"); set(1, "force");
+    const fromHash = () => { const m = location.hash.match(/^#hero-(\d+)$/); if (m) set(+m[1], "hash"); };
+    fromHash(); addEventListener("hashchange", fromHash);
+  });
+
+  // Core picture: one scenario at a time toggles marks on the SVG (both the wide and tall drawings) and shows that scenario's verdict line.
+  // blind: the scenario is selected but its answer (stop and pass marks, hot path, verdict) stays hidden; the guess uses it.
+  $$(".core").forEach((fig) => {
+    const btns = $$(".scen [data-s]", fig), says = $$(".says li", fig);
+    fig.classList.add("js");
+    const show = (s, blind = false) => {
+      fig.dataset.s = s; fig.classList.toggle("blind", blind);
+      btns.forEach((b) => b.setAttribute("aria-pressed", b.dataset.s === s));
+      $$("[data-on]", fig).forEach((el) => el.classList.toggle("is-on", has(el, "data-on", s)));
+      $$("[data-hot]", fig).forEach((el) => el.classList.toggle("is-hot", !blind && has(el, "data-hot", s)));
+      $$("[data-stop]", fig).forEach((el) => el.classList.toggle("is-stop", !blind && has(el, "data-stop", s)));
+      says.forEach((li) => li.classList.toggle("now", !blind && li.dataset.s === s));
+      okLabels(fig);
+    };
+    btns.forEach((b) => (b.onclick = () => (fig._choose || show)(b.dataset.s)));
+    fig._run = show; // the in-figure guess calls this
+    if (btns[0]) show(btns[0].dataset.s);
+  });
+
+  // Stepper: starts on step 1 with a counter; Play becomes Pause while running; buttons disable at the ends.
+  $$(".stepper").forEach((box) => {
+    const nodes = $$(".node", box), why = $$(".why li", box);
+    const [play, prev, next] = ["play", "prev", "next"].map((a) => box.querySelector(`[data-act="${a}"]`));
+    const count = Object.assign(document.createElement("span"), { className: "count" });
+    box.querySelector(".controls").append(count);
+    box.classList.add("js");
+    let at = 0, timer = null;
+    const show = (i) => {
+      at = Math.max(0, Math.min(nodes.length - 1, i));
+      nodes.forEach((n, k) => { n.classList.toggle("seen", k < at); n.classList.toggle("now", k === at); });
+      why.forEach((li, k) => li.classList.toggle("now", k === at));
+      prev.disabled = at === 0; next.disabled = at === nodes.length - 1;
+      count.textContent = `Step ${at + 1} of ${nodes.length}`;
+    };
+    const stop = () => { clearInterval(timer); timer = null; play.textContent = "Play"; };
+    box.addEventListener("click", (e) => {
+      const act = e.target.dataset.act; if (!act) return;
+      if (act === "play" && timer) return stop();
+      stop();
+      if (act === "next") show(at + 1);
+      if (act === "prev") show(at - 1);
+      if (act === "play") {
+        if (reduce) return show(nodes.length - 1);
+        show(at === nodes.length - 1 ? 0 : at); play.textContent = "Pause";
+        timer = setInterval(() => (at < nodes.length - 1 ? show(at + 1) : stop()), 1400);
+      }
+    });
+    show(0);
+  });
+
+  // Trace: send the token gate by gate under the chosen scenario; stop at the first "stop". blind resets it at the start gate.
+  $$(".trace").forEach((fig) => {
+    const btns = $$(".scen [data-s]", fig), gates = $$(".gate", fig), verdict = fig.querySelector(".verdict");
+    const token = Object.assign(document.createElement("span"), { className: "token" });
+    fig.querySelector(".track").append(token);
+    fig.classList.add("js");
+    let run = 0, scen = btns[0] && btns[0].dataset.s;
+    const outOf = (g) => g.querySelector(`.outs li[data-s="${scen}"]`);
+    const vertical = () => getComputedStyle(fig.querySelector(".track")).flexDirection === "column";
+    const place = (g) => {
+      if (vertical()) { token.style.left = ""; token.style.top = g.offsetTop + g.offsetHeight / 2 - 9 + "px"; }
+      else { token.style.top = ""; token.style.left = g.offsetLeft + g.offsetWidth / 2 + "px"; }
+    };
+    const say = (v, head, text) => { verdict.dataset.v = v; verdict.innerHTML = ""; verdict.append(Object.assign(document.createElement("b"), { textContent: head }), " " + text); };
+    const go = async (blind = false) => {
+      const me = ++run;
+      fig.dataset.s = scen;
+      btns.forEach((b) => b.setAttribute("aria-pressed", b.dataset.s === scen));
+      gates.forEach((g) => delete g.dataset.v); okLabels(fig);
+      token.className = "token"; place(gates[0]); verdict.textContent = ""; delete verdict.dataset.v;
+      if (blind) return;
+      const wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+      await wait(250);
+      for (const [i, g] of gates.entries()) {
+        if (me !== run) return;
+        place(g); await wait(600); if (me !== run) return;
+        const li = outOf(g), v = li ? li.dataset.v : "pass", name = g.querySelector("b").textContent;
+        g.dataset.v = v; okLabels(fig);
+        // The verdict names the gate by its number only: the gate already prints its name, so the readout does not repeat it.
+        const tag = (name.match(/^\d+/) || [name.replace(/\?$/, "")])[0];
+        if (v === "stop") { token.classList.add("stop"); gates.slice(i + 1).forEach((x) => (x.dataset.v = "skip")); return say("stop", `Stops at ${tag}:`, li.textContent); }
+        if (i === gates.length - 1) { token.classList.add(v === "pass" ? "ok" : "maybe"); return li ? say(v, `Reaches ${tag}:`, li.textContent) : say(v, `Reaches ${tag}.`, ""); }
+      }
+    };
+    btns.forEach((b) => (b.onclick = () => (fig._choose ? fig._choose(b.dataset.s) : ((scen = b.dataset.s), go()))));
+    fig._run = (s, blind = false) => { scen = s; return go(blind); }; // the in-figure guess calls this
+    const replay = fig.querySelector(".replay"); if (replay) replay.onclick = () => (fig._choose ? fig._choose(scen) : go());
+    addEventListener("resize", () => { const g = gates.filter((x) => x.dataset.v && x.dataset.v !== "skip").pop(); if (g) place(g); });
+    go();
+  });
+
+  // Guess inside the figure. The figure loads on its first scenario (a fact) with the GUESS row hidden; the asked scenario's button
+  // carries a GUESS badge. Clicking it selects that scenario blind (answer hidden) and shows the question, so the question and the
+  // selected button always match. The reader clicks where it stops, or Show me; the same figure then runs and grades the pick.
+  // Any other button hides the GUESS row fully. Nothing waits on the guess: every button and Show me always work.
+  $$("figure[data-ask]:not(.herostory)").forEach((fig) => {
+    const s = fig.dataset.ask, ask = fig.querySelector(".ask"), isTrace = fig.classList.contains("trace");
+    if (!ask || !fig._run) return warn(fig, `data-ask="${s}" needs a .ask line inside a core or trace figure`);
+    const askBtn = fig.querySelector(`.scen [data-s="${s}"]`);
+    if (!askBtn) return warn(fig, `data-ask="${s}" has no scenario button with that data-s`);
+    if (fig.querySelector(".scen [data-s]") === askBtn) warn(fig, `data-ask="${s}" asks about the scenario on screen at load; ask about another one`);
+    const picks = isTrace ? $$(".gate", fig) : $$("[data-pick]", fig);
+    const nameOf = (p) => (isTrace ? p.querySelector("b").textContent : p.dataset.pick);
+    const stops = isTrace ? picks.filter((g) => g.querySelector(`.outs li[data-s="${s}"][data-v="stop"]`)) : picks.filter((p) => has(p, "data-stop", s));
+    const answer = stops.length ? stops : isTrace ? picks.slice(-1) : picks.filter((p) => p.hasAttribute("data-end"));
+    if (!answer.length) return warn(fig, `data-ask="${s}": no pick stops in that scenario and none has data-end`);
+    // The wide and tall drawings repeat each pick; a name counts once.
+    const answerNames = [...new Set(answer.map(nameOf))], many = answerNames.length > 1, question = ask.textContent.trim(), list = (ns) => ns.join(" and ");
+    answerNames.forEach((n) => answer.find((p) => nameOf(p) === n).setAttribute("data-answer", "")); // shoot.sh clicks these
+    const btn = (text, cls) => Object.assign(document.createElement("button"), { type: "button", textContent: text, className: cls });
+    const q = document.createElement("span"), res = Object.assign(document.createElement("span"), { className: "res" });
+    const check = btn("Check", "check"), show = btn("Show me", "showme"), again = btn("Guess again", "again");
+    ask.textContent = ""; ask.setAttribute("aria-live", "polite"); ask.append(q, res, check, show, again);
+    askBtn.append(Object.assign(document.createElement("span"), { className: "gb", textContent: "guess" }));
+    let guessed = false;
+    const set = (v, head, text) => { if (v) res.dataset.v = v; else delete res.dataset.v; res.innerHTML = ""; res.append(Object.assign(document.createElement("b"), { textContent: head }), " " + text); };
+    const clearPicks = () => picks.forEach((p) => p.classList.remove("g-pick"));
+    // The template's own desync check: a visible question must belong to the selected button.
+    const sync = () => {
+      const on = fig.querySelector('.scen [aria-pressed="true"]');
+      if (!ask.hidden && on && on.dataset.s !== s) warn(fig, `the guess asks about "${s}" while "${on.dataset.s}" is selected`);
+      if (!ask.hidden && !q.textContent && !res.textContent) warn(fig, "the GUESS row is visible with no question and no result");
+    };
+    const open = () => {
+      fig._run(s, true); fig.classList.add("asking"); clearPicks();
+      q.textContent = question; res.textContent = ""; delete res.dataset.v;
+      check.hidden = !many; check.disabled = true; show.hidden = false; again.hidden = true; ask.hidden = false; sync();
+    };
+    const grade = async () => {
+      if (!fig.classList.contains("asking")) return;
+      fig.classList.remove("asking"); check.hidden = show.hidden = true; guessed = true;
+      const mine = [...new Set(picks.filter((p) => p.classList.contains("g-pick")).map(nameOf))];
+      await fig._run(s);
+      const right = mine.length === answerNames.length && mine.every((n) => answerNames.includes(n));
+      q.textContent = "";
+      if (!mine.length) set("", "Answer:", list(answerNames) + ".");
+      else if (right) set("ok", "Right:", list(answerNames) + ".");
+      else set("bad", "Not quite.", `You picked ${list(mine)}; the answer is ${list(answerNames)}.`);
+      again.hidden = false; ask.hidden = fig.dataset.s !== s; sync();
+    };
+    picks.forEach((p) => {
+      p.setAttribute("tabindex", "0"); p.setAttribute("role", "button"); p.setAttribute("aria-label", `Guess: ${nameOf(p)}`);
+      const pick = () => {
+        if (!fig.classList.contains("asking")) return;
+        const same = picks.filter((x) => nameOf(x) === nameOf(p));
+        if (!many) { same.forEach((x) => x.classList.add("g-pick")); return grade(); }
+        const on = !p.classList.contains("g-pick"); same.forEach((x) => x.classList.toggle("g-pick", on));
+        check.disabled = !picks.some((x) => x.classList.contains("g-pick"));
+      };
+      p.addEventListener("click", pick);
+      p.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } });
+    });
+    check.onclick = grade; show.onclick = grade; again.onclick = open;
+    fig._choose = (t) => {
+      if (t === s && !guessed) return open();
+      fig.classList.remove("asking"); clearPicks();
+      q.textContent = ""; check.hidden = show.hidden = true; again.hidden = false;
+      ask.hidden = t !== s; // back on the asked button after a guess: its result and Guess again; anywhere else: no GUESS row at all
+      fig._run(t); sync();
+    };
+    fig.classList.add("js"); ask.hidden = true; sync();
+  });
+
+  // Guess a quantity: the slider sets your mark; Check shows the true mark on the same scale and how far off you were.
+  $$(".guess").forEach((fig) => {
+    const css = getComputedStyle(fig), min = +css.getPropertyValue("--min"), max = +css.getPropertyValue("--max");
+    const truth = fig.querySelector(".mk.truth"), scale = fig.querySelector(".scale"), ask = fig.querySelector(".ask"), unit = fig.dataset.unit || "";
+    if (!truth || !scale || !ask || !(max > min)) return warn(fig, "guess needs --min/--max on the figure, a .scale with one .mk.truth, and a .ask line");
+    fig.classList.add("js");
+    const at = +truth.style.getPropertyValue("--at");
+    const mark = Object.assign(document.createElement("span"), { className: "mk mine" });
+    const range = Object.assign(document.createElement("input"), { type: "range", min, max, step: fig.dataset.step || 1, value: Math.round((min + max) / 2) });
+    range.setAttribute("aria-label", "Your guess"); scale.append(mark); scale.after(range);
+    const paint = () => { mark.style.setProperty("--at", range.value); mark.textContent = `your guess: ${range.value} ${unit}`; };
+    const question = ask.textContent.trim(), res = Object.assign(document.createElement("span"), { className: "res" });
+    const check = Object.assign(document.createElement("button"), { type: "button", textContent: "Check", className: "check" });
+    const show = Object.assign(document.createElement("button"), { type: "button", textContent: "Show me", className: "showme" });
+    ask.textContent = question; ask.setAttribute("aria-live", "polite"); ask.append(res, check, show);
+    const done = (guessed) => {
+      fig.classList.add("done"); check.hidden = show.hidden = true; range.disabled = !guessed; mark.hidden = !guessed;
+      const off = Math.abs(range.value - at), close = off <= (max - min) * 0.1;
+      res.dataset.v = !guessed ? "" : close ? "ok" : "bad"; res.innerHTML = "";
+      res.append(Object.assign(document.createElement("b"), { textContent: !guessed ? "Answer:" : close ? "Close." : "Not quite." }), ` ${truth.textContent}${guessed && off ? `, you were off by ${off} ${unit}` : ""}.`);
+    };
+    range.oninput = paint; check.onclick = () => done(true); show.onclick = () => done(false); paint();
+  });
+
+  // Recall: the napkin, the 5 facts, and the whys are one fill-in exercise. With JS on, every blank starts empty.
+  // A napkin part is a blank only when a fact blank shares its data-n; filling one fills the other, and the pair is one item.
+  // Parts with no matching blank stay labeled (.fixed). The counter counts items; more than 12 prints a red bar.
+  $$(".napkin").forEach((fig) => {
+    const blanks = $$(".blank", fig), count = fig.querySelector(".count"), all = fig.querySelector('[data-act="all"]');
+    const tied = new Set(blanks.map((b) => b.dataset.n).filter(Boolean));
+    $$(".part", fig).forEach((p) => p.classList.toggle("fixed", !tied.has(p.dataset.n)));
+    const parts = $$(".part:not(.fixed)", fig);
+    $$("svg", fig).forEach((svg) => {
+      const ps = $$(".part", svg);
+      if (ps.length > 7) warn(fig, `napkin has ${ps.length} labeled parts; the limit is 7`);
+      if (ps.some((p, i) => +p.dataset.n !== i + 1)) warn(fig, "napkin parts must be numbered 1..N in DOM order, so keyboard order matches the page");
+    });
+    blanks.forEach((b) => {
+      const p = b.dataset.n && parts.find((x) => x.dataset.n === b.dataset.n);
+      if (b.dataset.n && (!p || norm(p.querySelector(".lbl").textContent) !== norm(b.textContent)))
+        warn(fig, `blank "${b.textContent}" has data-n="${b.dataset.n}" but napkin part ${b.dataset.n} is labeled differently`);
+    });
+    const key = (el) => (el.dataset.n ? "p" + el.dataset.n : "b" + blanks.indexOf(el));
+    const items = [...parts, ...blanks], total = new Set(items.map(key)).size, shown = new Set();
+    if (total > 12) warn(fig, `the recall holds ${total} items; the limit is 12 (a napkin part tied to a fact blank counts once)`);
+    $$(".deep .q", fig).forEach((q) => { if (!/\b(why|without|else|otherwise|breaks?|fails?|stops?)\b/i.test(q.textContent)) warn(fig, `deep prompt "${q.textContent.trim()}" does not ask what breaks without its rule; cut it or ask why`); });
+    const paint = () => {
+      const quiz = fig.classList.contains("quiz");
+      items.forEach((el) => el.classList.toggle("shown", shown.has(key(el))));
+      count.textContent = quiz ? `${shown.size} of ${total} filled` : `${total} of ${total} shown`;
+      all.textContent = quiz ? "Show all" : "Hide again";
+    };
+    parts.forEach((p) => {
+      const lbl = p.querySelector(".lbl"), qm = lbl.cloneNode(false);
+      qm.setAttribute("class", "qm" + (lbl.classList.contains("verb") ? " verb" : "")); qm.textContent = "?";
+      lbl.after(qm);
+    });
+    items.forEach((el) => {
+      el.setAttribute("tabindex", "0"); el.setAttribute("role", "button");
+      el.setAttribute("aria-label", el.classList.contains("part") ? `Napkin part ${el.dataset.n}, show its label` : "Blank, show the answer");
+      const open = () => {
+        if (!fig.classList.contains("quiz")) return;
+        shown.add(key(el));
+        if (el.dataset.n) items.filter((x) => x.dataset.n === el.dataset.n).forEach((x) => shown.add(key(x)));
+        paint();
+      };
+      el.addEventListener("click", open);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } });
+    });
+    all.onclick = () => { fig.classList.toggle("quiz"); shown.clear(); paint(); };
+    fig.classList.add("js", "quiz"); paint();
+  });
+
+  // The 5 facts must each be on screen in a main-flow figure as it loads: first scenario, first step, drawers closed, no click.
+  const keep = document.querySelector(".keep");
+  if (keep) {
+    const facts = $$(".keep > li");
+    if (facts.length !== 5) warn(keep, `the page needs exactly 5 facts, found ${facts.length}`);
+    facts.forEach((li, k) => {
+      const n = li.dataset.fact || String(k + 1), fig = $$(`[data-fact~="${n}"]`).find((f) => !f.closest(".keep"));
+      if (!fig) return warn(keep, `fact ${n} has no figure with data-fact="${n}"`);
+      if (fig.closest("details")) return warn(fig, `fact ${n}'s figure is in a drawer; facts live on the main flow`);
+      if (!$$(".blank", li).length) warn(keep, `fact ${n} has no .blank`);
+      const text = norm(loadText(fig));
+      $$(".blank", li).forEach((b) => { if (!text.includes(norm(b.textContent))) warn(fig, `fact ${n}: "${b.textContent.trim()}" is not on screen in this figure as it loads`); });
+    });
+  }
+  // Deep items: at most 6, each printed as a figure label in a main-flow figure, as it loads or after one click on data-via.
+  // The asked scenario does not count as one click: it opens blind and needs a guess or Show me first.
+  const deep = $$(".deep > li");
+  if (deep.length > 6) warn(deep[0].parentElement, `the page has ${deep.length} deep items; the limit is 6`);
+  // Sources live in data-src attributes. A visible "file.md:12" or "derived from" is a citation leak.
+  { const t = document.body.innerText, m = t.match(/[a-z]+\.md:[0-9]+|derived from/i); if (m) warn(document.querySelector("main") || document.body, `visible text cites a source ("${m[0]}"); move it to a data-src attribute`); }
+  deep.forEach((li) => {
+    const id = li.dataset.deep, fig = id && document.getElementById(id), via = li.dataset.via, what = (li.querySelector(".q") || li).textContent.trim();
+    if (!fig) return warn(li.parentElement, `deep item "${what}" needs data-deep naming a figure id`);
+    if (fig.closest("details")) return warn(fig, `deep item "${what}" points into a drawer; deep items live on the main flow`);
+    if (via && !fig.querySelector(`.scen [data-s="${via}"], [role=tab][data-s="${via}"], .panel[data-s="${via}"]`)) return warn(fig, `deep item "${what}": #${id} has no button or panel with data-s="${via}"`);
+    if (via && fig.dataset.ask === via) warn(fig, `deep item "${what}" uses the asked scenario "${via}", which takes 2 clicks; show it in another state`);
+    if (!$$(".blank", li).length) warn(li.parentElement, `deep item "${what}" has no .blank answer`);
+    const text = norm(loadText(fig, via));
+    $$(".blank", li).forEach((b) => { if (!text.includes(norm(b.textContent))) warn(fig, `deep item: "${b.textContent.trim()}" is not printed in #${id} ${via ? `after one click on "${via}"` : "as it loads"}`); });
+  });
+
+  // Tabs. A tab with data-s can be a deep item's data-via.
+  $$(".tabs").forEach((t) => {
+    const tabs = $$('[role="tab"]', t), panels = $$('[role="tabpanel"]', t);
+    tabs.forEach((b, i) => b.addEventListener("click", () => {
+      tabs.forEach((x, k) => x.setAttribute("aria-selected", k === i));
+      panels.forEach((p, k) => (p.hidden = k !== i));
+    }));
+  });
+
+  // Every table scrolls inside its own .tbl box, so a wide table never widens the page.
+  $$("table").forEach((tb) => { if (tb.parentElement.classList.contains("tbl")) return; const w = Object.assign(document.createElement("div"), { className: "tbl" }); tb.before(w); w.append(tb); });
+
+  // Clip a table to 5 rows only when that hides 3 or more.
+  $$("table.clip").forEach((tb) => {
+    const n = tb.tBodies[0].rows.length; if (n < 8) return;
+    tb.classList.add("clipped");
+    const b = Object.assign(document.createElement("button"), { className: "more", type: "button", textContent: `Show all ${n}` });
+    b.onclick = () => { tb.classList.toggle("all"); b.textContent = tb.classList.contains("all") ? "Show fewer" : `Show all ${n}`; };
+    tb.parentElement.after(b);
+  });
+
+  // Copy buttons on code blocks.
+  $$("pre").forEach((p) => {
+    const text = p.innerText.trim();
+    const b = Object.assign(document.createElement("button"), { className: "copy", type: "button", textContent: "Copy" });
+    b.onclick = () => navigator.clipboard.writeText(text).then(() => (b.textContent = "Copied"));
+    p.append(b);
+  });
+
+  // Scrollspy rail: the last section whose top has passed 40% of the screen is lit; none above the first.
+  const links = $$(".rail a"), targets = links.map((a) => document.querySelector(a.hash)).filter(Boolean);
+  const spy = () => {
+    const line = innerHeight * 0.4, cur = targets.filter((t) => t.getBoundingClientRect().top < line).pop();
+    links.forEach((a) => a.classList.toggle("on", !!cur && a.hash === "#" + cur.id));
+  };
+  addEventListener("scroll", spy, { passive: true }); spy();
+
+  // Theme toggle.
+  const tbtn = document.querySelector(".theme"), root = document.documentElement;
+  const label = () => { if (tbtn) tbtn.textContent = root.dataset.theme === "dark" ? "Light" : "Dark"; };
+  if (tbtn) tbtn.onclick = () => { root.dataset.theme = root.dataset.theme === "dark" ? "light" : "dark"; try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {} label(); };
+  label();
+})();
+</script>
+</body>
+</html>

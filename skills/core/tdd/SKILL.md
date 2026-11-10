@@ -7,13 +7,15 @@ description: Build one observable behavior at a time through red-green-refactor.
 
 1. **Choose the seam.** Test through a public boundary where a caller observes the behavior. Use
    seams already settled by the spec or ticket. If the boundary itself is a real design fork, stop
-   and resolve it before writing tests.
+   and resolve it before writing tests. When proposing seams, give each a one-line note on what it
+   catches and what it misses.
 2. **Write one test.** Express one behavior from the acceptance criterion using a spec literal,
    worked example, invariant, or other expected value independent of the implementation.
 3. **Prove red.** Run the focused test against the parent behavior. Confirm it fails for the
    intended reason, the missing behavior, not an import error, typo, or unrelated fixture. A red
    for the wrong reason proves nothing. A new capability with no parent behavior may use a temporary
-   intentional break to prove the assertion observes the seam.
+   intentional break to prove the assertion observes the seam. Diff against a clean copy to prove
+   the break landed before trusting the red.
 4. **Reach green.** Add only enough production code to pass this test. Do not anticipate later
    cases.
 5. **Refactor while green.** Improve names and remove duplication without changing behavior. Run

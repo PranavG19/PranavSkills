@@ -1,6 +1,7 @@
 ---
 name: handoff
-description: Use when stopping mid-task, before a context boundary or end of day; on resume, read the latest handoff first. Writes durable in-flight state and the single next action to a file (not a durable lesson, which is learn).
+description: Writes durable in-flight state and the single next action to a file when stopping mid-task or before a context boundary. On resume, read the latest handoff first. Durable lessons belong to learn.
+disable-model-invocation: true
 ---
 
 `handoff → write durable state to a file → name the single next action → cite paths and SHAs → redact secrets → on resume, read it first`

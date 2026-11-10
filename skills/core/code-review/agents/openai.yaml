@@ -1,4 +1,0 @@
-interface:
-  display_name: "Code Review"
-  short_description: "Review a ticket diff in a fresh context"
-  default_prompt: "Use $code-review to review this completed ticket."

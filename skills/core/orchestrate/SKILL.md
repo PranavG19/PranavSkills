@@ -27,7 +27,7 @@ artifact it drove; a stage cited with no artifact behind it means you skipped it
    human approves the ticket shape.
 4. **Build one ready ticket.** Enter with a fresh context and invoke `implement`. One ticket is the
    context budget. Stop when it reaches `review`.
-5. **Review one implementation.** Use a fresh context and invoke `code-review`. Stop at `done`,
+5. **Review one implementation.** Use a fresh context and invoke `ticket-review`. Stop at `done`,
    `changes-requested`, or a concrete block.
 6. **Hand taste back to the human.** Human QA may create more tickets. It does not silently reopen
    or widen completed scope. Merging, pushing, and deploying the approved work stay human actions.

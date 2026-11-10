@@ -18,6 +18,22 @@ cmux surface-health --workspace <ref>
 Targets accept UUIDs or short refs such as `workspace:2`, `pane:3`, and `surface:4`. Capture refs
 from command output; indexes can change as the UI is rearranged.
 
+## External socket recovery
+
+If `identify` returns `auth_required`, inspect the active automation config. Password mode with an
+empty or absent `socketPassword` cannot authenticate any caller. For user-authorized local
+automation from outside cmux, use a recoverable config edit:
+
+1. Back up `~/.config/cmux/cmux.json`.
+2. Set `automation.socketControlMode` to `"allowAll"`.
+3. Remove `automation.socketPassword`.
+4. Run `cmux config doctor` and `cmux reload-config`.
+5. Retry `cmux identify`.
+
+Do not search histories or transcripts for an old credential. Do not describe the generated socket
+credential as a password the user should know. If the configured mode is `cmuxOnly`, external
+denial may be intentional; change it only when the user authorized external cmux control.
+
 ## Create and communicate
 
 ```bash
@@ -34,6 +50,9 @@ transition is ambiguous.
 
 ## Embedded browser
 
+Prefer the T3 collaborative preview when it is available for the current thread and the browser
+does not need persistent co-location with cmux terminals, devices, or agent sessions.
+
 Use `cmux browser --help` for the current command set. The normal loop is:
 
 ```bash
@@ -47,11 +66,14 @@ cmux browser errors list
 ```
 
 The embedded browser supports navigation, DOM snapshots, selectors, JavaScript evaluation,
-screenshots, console/errors, cookies/storage, tabs, state, and design mode. Use the standalone
-`browser` skill when it provides the stronger existing interaction path; use cmux browser when
-the visible surface and human takeover are part of the workflow.
+screenshots, console/errors, cookies/storage, tabs, state, and design mode. Use cmux browser when
+the visible surface must persist with the workspace or when T3 preview is unavailable.
 
 ## Simulator
+
+Prefer T3 Device panel for thread-local iOS or Android QA when `device_list` and `device_open` are
+available and agent device access is enabled. Use cmux simulator surfaces for persistent
+cross-workspace supervision or when T3 device access is disabled.
 
 Create or identify a simulator surface with `new-pane --type simulator` or
 `new-surface --type simulator`. Then inspect the installed subcommands with:

@@ -107,7 +107,7 @@
 <section id="spine">
   <h2>The spine</h2>
   <p>Every non-trivial change walks the same path. Each stage has one job and hands a concrete artifact to the next, so work survives a fresh context or a handoff to another agent or person.</p>
-  <div class="flow">triage  →  grilling  →  spec  →  to-tickets  →  implement (+ tdd, + verify, + browser)  →  code-review  →  human QA
+  <div class="flow">triage  →  grilling  →  spec  →  to-tickets  →  implement (+ tdd, + verify, + browser)  →  ticket-review  →  human QA
   │          │           │           │                                                          │
   gate       resolve     decide      split into                                                 review from
   reversible the open    every       independently                                              a fresh
@@ -135,7 +135,7 @@
     <tr><td><code>tdd</code></td><td>Build one observable behavior test-first, proving the test fails for the intended reason before it passes.</td></tr>
     <tr><td>Diagnose</td><td><code>investigate</code></td><td>Find the root cause of a non-obvious bug, failure, crash, or regression before proposing a fix.</td></tr>
     <tr><td rowspan="3">Verify and review</td><td><code>verify</code></td><td>Prove a behavioral claim with a signal the implementation could not author. The antidote to grading your own work.</td></tr>
-    <tr><td><code>code-review</code></td><td>Review a completed local ticket from a fresh context against its spec and the repository's standards.</td></tr>
+    <tr><td><code>ticket-review</code></td><td>Review a completed local ticket from a fresh context against its spec and the repository's standards.</td></tr>
     <tr><td><code>diff-review</code></td><td>Read-only blocker review of a change you do not own, with no local ticket. Refute the author's claims.</td></tr>
     <tr><td rowspan="3">Explain and research</td><td><code>show-me</code></td><td>Explain with the smallest fitting visual (a tree, a diagram, a shape-matched diff) instead of a wall of prose.</td></tr>
     <tr><td><code>web</code></td><td>Look up current external facts, docs, releases, or an unfamiliar error, rather than guessing.</td></tr>
@@ -155,7 +155,7 @@
   <table>
     <tr><th>Situation</th><th>Path</th></tr>
     <tr><td>A small, clear change</td><td><code>triage → implement → verify</code></td></tr>
-    <tr><td>An unknown bug</td><td><code>investigate → tdd → verify → code-review</code></td></tr>
+    <tr><td>An unknown bug</td><td><code>investigate → tdd → verify → ticket-review</code></td></tr>
     <tr><td>A new feature</td><td><code>grilling → spec → to-tickets → orchestrate</code></td></tr>
     <tr><td>A greenfield project</td><td><code>grilling → spec → agent-arch → to-tickets → orchestrate</code></td></tr>
     <tr><td>A scoped fix that ships on its own</td><td><code>triage → change-contract → implement → verify → commit</code></td></tr>
@@ -202,7 +202,7 @@
     <div class="card">
       <h3>Matt Pocock's skills</h3>
       <p class="muted" style="margin-top:0">The process-first skill library this project started from. Grilling, spec, tickets, TDD, review, triage, done as small composable procedures.</p>
-      <p><b style="color:var(--good)">Took.</b> The spine itself and most of its DNA (<code>grilling</code>, <code>spec</code>, <code>to-tickets</code>, <code>tdd</code>, <code>code-review</code>, <code>triage</code>, <code>investigate</code>, <code>resolving-merge-conflicts</code>). The context and decision-record formats. The plain-writing ban on em-dashes, adopted after they scrubbed theirs repo-wide.</p>
+      <p><b style="color:var(--good)">Took.</b> The spine itself and most of its DNA (<code>grilling</code>, <code>spec</code>, <code>to-tickets</code>, <code>tdd</code>, <code>ticket-review</code>, <code>triage</code>, <code>investigate</code>, <code>resolving-merge-conflicts</code>). The context and decision-record formats. The plain-writing ban on em-dashes, adopted after they scrubbed theirs repo-wide.</p>
       <p><b style="color:var(--warn)">Left.</b> Single-harness plugin packaging, in favor of rendering to several. And we added what a solo library does not need: multi-project <code>supervise</code>, risk-based independent verification, a local ticket system, and a conservative-autonomy boundary.</p>
     </div>
   </div>

@@ -1,19 +1,23 @@
 ---
-name: code-review
+name: ticket-review
 description: Review one implemented ticket from a fresh context against its acceptance criteria and repository standards. Use when a local ticket reaches `review`, or when an independent implementation review is requested.
 ---
 
 `fixed diff -> independent spec review + standards review -> verify findings -> verdict`
 
 1. **Pin the review.** Resolve the ticket, referenced spec sections, merge-base or parent commit,
-   exact diff, commit list, repository standards, and recorded evidence. Stop on an unresolved
+   exact diff, commit list, repository standards, and recorded evidence. Search the repository for
+   every file that documents how code should be written; `CODING_STANDARDS.md`, `CONTRIBUTING.md`,
+   and agent context files are on the list when they exist. Stop on an unresolved
    fixed point or empty diff. Recorded evidence counts only against the pinned diff. A green an
    implementer captured on a superseded revision does not carry to this one, so re-establish it
    against the current diff or treat it as absent.
 2. **Start clean.** Review outside the implementation conversation. Treat implementer output as
    evidence to inspect, not a verdict.
-3. **Dispatch two independent reviewers.** Run them in parallel when supported; otherwise use
-   separate fresh contexts so one axis cannot anchor the other.
+3. **Dispatch two independent reviewers.** Start each with a fresh context window, never a fork
+   of this conversation. Issue both together in the foreground and aggregate the reports they
+   return. Without subagent support, run them in separate fresh sessions so one axis cannot
+   anchor the other.
    - **Spec reviewer:** for every acceptance criterion return `met`, `not met`, or `unverified`
      with proving code and signal. Flag missing behavior, wrong behavior, and scope creep.
    - **Standards reviewer:** trace modified call paths and compare the diff with repository rules,

@@ -7,11 +7,11 @@ description: Read-only blocker review of a diff you don't own, repo standards pl
 
 You are reviewing a change you did not write and there is no local ticket to anchor it. The trap is trusting the author's summary, the author's green, and the author's framing of what the change does. **A review that restates the author's claims has verified nothing. The signal is in what the author did not mention and what their own claims fail to survive.** Read the diff, refute its claims, and report only what would block.
 
-This is the sibling of `code-review`. `code-review` pins a local ticket and moves its state through the board. This skill reviews an external diff (CR, PR, patch) that has no ticket, so it owns nothing and changes no state. Use `critiquing` only for an extra multi-angle panel; this is the narrower, read-only blocker pass.
+This is the sibling of `ticket-review`. `ticket-review` pins a local ticket and moves its state through the board. This skill reviews an external diff (CR, PR, patch) that has no ticket, so it owns nothing and changes no state. Use `critiquing` only for an extra multi-angle panel; this is the narrower, read-only blocker pass.
 
 ## Step 1. Pin the diff and its claims
 
-Resolve the exact target and freeze it. The revision id, branch, or patch, its merge-base or parent commit, the file set, and the repository standards that apply. Write down the change's stated claims (what the description says it does and why it is safe). A moving or unresolved target stops the review.
+Resolve the exact target and freeze it. The revision id, branch, or patch, its merge-base or parent commit, the file set, and the repository standards that apply. Search the repository for every file that documents how code should be written; `CODING_STANDARDS.md`, `CONTRIBUTING.md`, and agent context files are on the list when they exist. Write down the change's stated claims (what the description says it does and why it is safe). A moving or unresolved target stops the review.
 
 ## Step 2. Read-only, always
 

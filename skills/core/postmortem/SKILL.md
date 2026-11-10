@@ -1,6 +1,7 @@
 ---
 name: postmortem
-description: Draft an incident postmortem from a confirmed root cause. Impact, timeline, five-whys, and corrective actions placed on the structural-over-detection ladder. Use when writing a postmortem, RCA, or incident retro, or after an incident is understood.
+description: Drafts an incident postmortem, RCA, or retro from a confirmed root cause. Impact, timeline, five-whys, and corrective actions placed on the structural-over-detection ladder.
+disable-model-invocation: true
 ---
 
 `postmortem → confirm the root cause first → quantify impact by scope → timeline → five-whys → corrective actions on the structural ladder`

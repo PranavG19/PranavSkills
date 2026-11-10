@@ -1,17 +1,66 @@
 ---
 name: browser
-description: Drive and inspect a real browser. Use when a UI needs visual or interaction QA, a JS-rendered page needs scraping, an E2E/login flow needs running, or a bug reproduces only in a browser.
+description: Drive a real browser. Use when a task needs UI or interaction QA, a JS-rendered page, an E2E or login flow, a browser-only bug, or an internal site behind SSO that a plain fetch cannot reach.
 ---
 
-`open → snapshot -i → act on @refs → wait → screenshot/extract → close`
+`route surface → open → snapshot → act → wait → screenshot/extract → close`
 
-Drive a browser through **`agent-browser`**, a CLI built for AI agents (Chrome via CDP, no Playwright/Puppeteer). It returns accessibility-tree snapshots with compact `@eN` refs (~200-400 tokens) instead of raw HTML, and persists across commands so a sequence feels like one session. On demand only; nothing runs in the background between tasks.
+## Surface routing
 
-If `agent-browser` isn't installed: `npm i -g agent-browser && agent-browser install`.
+When T3 collaborative preview tools are available:
 
-## Load the canonical skill first
+1. call `preview_status`;
+2. call `preview_open` if no automation-capable tab is attached;
+3. use `preview_navigate`, `preview_snapshot`, semantic locators, focused interaction tools, and
+   `preview_wait_for`;
+4. use `preview_resize`, appearance emulation, screenshots, and recording when the task needs them.
 
-`agent-browser` ships version-matched skills, **the source of truth for commands**, tracking the CLI as it changes. Read them rather than guessing flags:
+Prefer T3 because the browser is bound to the current thread and Pranav can watch or take over in
+the same application. A failed first call is not a reason to switch tools when the error is
+actionable.
+
+Use cmux browser when the browser must remain beside persistent terminals, devices, or several
+agent sessions, or when the run must survive the current T3 thread.
+
+Use **`agent-browser`** when T3 preview tools are absent or explicitly unavailable, the user asks
+for it, or an existing authenticated Chrome/CDP workflow requires it. It returns accessibility-tree
+snapshots with compact `@eN` refs and persists across commands.
+
+### Authenticated internal sites (SSO)
+
+Default to a **seeded agent-owned Chrome**. It completes SSO silently, needs nobody at the
+keyboard, and leaves Pranav's own tabs alone:
+
+```bash
+python3 <your-state-builder>.py > /tmp/sso-state.json
+agent-browser --state /tmp/sso-state.json \
+  --executable-path "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  open https://intranet.example.com/
+```
+
+Real Chrome via `--executable-path` is required on a managed device; bundled Chromium can fail
+`net::ERR_INVALID_AUTH_CREDENTIALS`. Covers SSO-gated sites, not tools with their own auth.
+Pranav's only job is refreshing his SSO session once a day; never ask him for more.
+
+Attach to his live Chrome with `agent-browser connect <port>` **only** when the task needs *his*
+tabs (an app already in a given state, a session only he can create) or when the seeded path
+fails. It costs him a short, flaky approval prompt.
+
+Full mechanism, findings and troubleshooting: `REFERENCE.md`.
+
+All browser tools are on demand. Close agent-created sessions when the selected surface supports
+closing them. Leave user-owned authenticated sessions open unless the user asks otherwise.
+
+If the fallback is required and `agent-browser` is not installed:
+
+```bash
+npm i -g agent-browser
+agent-browser install
+```
+
+## Agent-browser fallback reference
+
+When using the fallback, load its version-matched command reference rather than guessing flags:
 
 ```bash
 agent-browser skills get core --full    # full command reference + templates, read before driving
@@ -21,6 +70,10 @@ agent-browser skills get electron       # VS Code, Slack, Discord, Figma desktop
 ```
 
 ## The core loop
+
+For T3, use the equivalent `preview_*` operations and snapshot-provided locators.
+
+For `agent-browser`:
 
 ```bash
 agent-browser open <url>        # navigate
@@ -72,7 +125,8 @@ Read it when the run needs one of these, rather than up front:
 
 | Read `REFERENCE.md` for | When |
 |---|---|
-| Attaching to an existing **authenticated** Chrome | The task needs the user's logged-in session (SSO or another logged-in app); a fresh spawn has no cookies and lands on a login page |
+| Seeded agent-owned Chrome for SSO-gated sites | The task needs Pranav's authenticated internal session (this is the default path) |
+| Attaching to his **live** Chrome | The seeded path failed, or the task needs his actual open tabs |
 | Headed mode and handing a step to the user | The user must click through login or a security key |
 | Network inspection, HAR, request mocking | Asserting on or faking traffic |
 | `eval`, tabs, iframes, parallel sessions, saved state | The flow reaches past a single page in a single tab |
@@ -84,6 +138,8 @@ separate visual-QA skill.
 
 ## Constraints
 
+- Prefer T3 preview when it is available and automation-capable.
+- Do not switch from T3 merely because the preview is initially closed; call `preview_open`.
 - On-demand only. Close agent-created browser sessions and dev servers when done; leave attached
   user-owned browser processes untouched.
 - Wait on a concrete condition; re-snapshot after every page change. Stale refs are the most common failure.

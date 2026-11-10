@@ -1,0 +1,42 @@
+{
+  "theme": "light",
+  "speed": 0.95,
+  "lexicon": {"PAY4": "pay four", "GiftCard": "gift card"},
+  "scenes": [
+    {"id": "claim", "kind": "card", "heading": "ORDER-123",
+     "hero": "One config row lets checkout accept gift cards",
+     "items": [{"id": "ask", "text": "Today the row rejects them.", "tone": "bad"}],
+     "cues": [{"text": "One config row decides whether checkout accepts gift cards.", "show": {"reveal": ["ask"]}}]},
+    {"id": "flow", "kind": "map", "heading": "Two gates decide",
+     "items": [
+       {"id": "svc", "label": "CheckoutService", "group": true, "at": [3.5, 0], "w": 8.5, "h": 3},
+       {"id": "buyer", "label": "Buyer", "sub": "gift card", "at": [0, 1]},
+       {"id": "g1", "label": "Code check", "sub": "allowlist", "at": [4, 1]},
+       {"id": "g2", "label": "PAY4 row", "sub": "allowed methods", "at": [8.5, 1]},
+       {"id": "ledger", "label": "Ledger", "sub": "records payment", "at": [8.5, 4]}],
+     "edges": [["buyer", "g1"], ["g1", "g2"], ["g2", "ledger", "if both pass"]],
+     "cues": [
+       {"text": "A gift card payment reaches two gates in checkout.", "show": {"reveal": ["svc", "buyer", "g1", "g2"]}},
+       {"text": "The code gate passes, and the row gate rejects it.",
+        "show": {"packet": ["buyer", "g1", "g2"], "state": {"g1": "pass", "g2": "fail"},
+                 "stop": {"at": "g2", "msg": "Payment method not allowed"}}},
+       {"text": "If both pass, the ledger records it.", "show": {"reveal": ["ledger"], "state": {"ledger": "ghost"}, "focus": ["g2", "ledger"]}}]},
+    {"id": "row", "kind": "diff", "heading": "The change adds one word",
+     "items": [
+       {"id": "before", "label": "today", "mark": "-", "text": "[Card, Wallet]"},
+       {"id": "after", "label": "after", "mark": "+", "text": "[Card, Wallet, GiftCard]", "hot": "GiftCard"}],
+     "cues": [{"text": "The row lists two methods, and we add GiftCard.", "show": {"reveal": ["before", "after"]}}]},
+    {"id": "day", "kind": "timeline", "heading": "Staging first, prod after go",
+     "axis": {"from": "09:00", "to": "17:00", "every": 2},
+     "items": [
+       {"id": "gtest", "lane": "staging", "from": "09:00", "to": "12:00", "label": "Promote, test"},
+       {"id": "go", "time": "12:30", "label": "go / no-go"},
+       {"id": "ptest", "lane": "prod", "from": "12:30", "to": "16:00", "label": "Promote, monitor"},
+       {"id": "back", "lane": "prod", "from": "16:00", "to": "17:00", "label": "Rollback"}],
+     "cues": [{"text": "Staging runs in the morning, and prod waits for the go.",
+               "show": {"reveal": ["gtest", "go", "ptest", "back"], "state": {"back": "ghost"}}}]},
+    {"id": "ask", "kind": "card", "heading": "The ask", "hero": "Review CHG-1234",
+     "items": [{"id": "who", "text": "Approvers sign before Wednesday.", "tone": "accent"}],
+     "cues": [{"text": "Please review the change before Wednesday.", "show": {"reveal": ["who"]}}]}
+  ]
+}

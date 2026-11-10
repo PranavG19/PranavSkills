@@ -6,10 +6,21 @@
     "core"
   ],
   "knowledge": [
-    "agent-arch"
+    "agent-arch",
+    "business",
+    "sessions",
+    "ux"
   ],
   "context": [
-    "AGENTS.md"
+    "AGENTS.md",
+    "memory/preference/style.md",
+    "memory/preference/engineering.md",
+    "memory/preference/github-review.md"
   ],
-  "hooks": []
+  "hooks": [
+    "bash-guard.sh"
+  ],
+  "settings": {
+    "includeCoAuthoredBy": false
+  }
 }

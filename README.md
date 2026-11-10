@@ -38,7 +38,7 @@ across several agent harnesses.
 ## Core Workflow
 
 ```text
-grilling -> spec -> to-tickets -> implement + tdd -> verify -> code-review -> human QA
+grilling -> spec -> to-tickets -> implement + tdd -> verify -> ticket-review -> human QA
 ```
 
 For larger work, `orchestrate` moves one project through that sequence. For several projects,
@@ -68,8 +68,9 @@ not a long plan that one session must remember.
 | Research | [`web`](skills/core/web/SKILL.md) | Check current external documentation, releases, APIs, and error messages. |
 | UI | [`browser`](skills/core/browser/SKILL.md) | Exercise a real interface and inspect interactions, screenshots, responsive states, console, and network behavior. |
 | Quality | [`verify`](skills/core/verify/SKILL.md) | Select a risk-based test gauntlet and prove a claim with an independent signal. |
-| Quality | [`code-review`](skills/core/code-review/SKILL.md) | Review a completed ticket from a fresh context against both its spec and repository standards. |
+| Quality | [`ticket-review`](skills/core/ticket-review/SKILL.md) | Review a completed ticket from a fresh context against both its spec and repository standards. |
 | Quality | [`diff-review`](skills/core/diff-review/SKILL.md) | Read-only blocker review of a change you do not own, with no local ticket, refuting the author's claims. |
+| Explain | [`explainer`](skills/core/explainer/SKILL.md) | Build a single-file HTML report where figures and tables carry every fact and text is caption. |
 | Explain | [`show-me`](skills/core/show-me/SKILL.md) | Explain with the smallest fitting visual (tree, diagram, shape-matched diff) instead of a wall of prose. |
 | Architecture | [`agent-arch`](skills/core/agent-arch/SKILL.md) | Design agent-legible codebases, context files, hooks, permissions, and verification gates. |
 | Incident | [`postmortem`](skills/core/postmortem/SKILL.md) | Draft a postmortem, RCA, or incident retro from a confirmed root cause. |
@@ -83,7 +84,7 @@ not a long plan that one session must remember.
 | Situation | Suggested path |
 |---|---|
 | Small, clear change | `triage -> implement -> verify` |
-| Unknown bug | `investigate -> tdd -> verify -> code-review` |
+| Unknown bug | `investigate -> tdd -> verify -> ticket-review` |
 | New feature | `grilling -> spec -> to-tickets -> orchestrate` |
 | Greenfield project | `grilling -> spec -> agent-arch -> to-tickets -> orchestrate` |
 | Scoped fix that ships on its own | `triage -> change-contract -> implement -> verify -> commit` |
@@ -108,6 +109,8 @@ files are generated because each harness loads them differently.
 | Codex | `~/.codex` | Symlinks into `skills/` and `knowledge/` | `AGENTS.md` contains the rendered working agreement |
 | Kiro | `~/.kiro` | Adds owned symlinks while preserving Kiro-managed real directories and external links | `AGENTS.md` contains the rendered working agreement |
 | pi | `~/.pi/agent` | Adds owned symlinks alongside pi's own skill links; a name already taken (e.g. `cmux`) is skipped, never overwritten | `AGENTS.md` at `~/.pi/agent/AGENTS.md` contains the rendered working agreement |
+| Claude personal | `~/.claude-personal` | Core skills and personal knowledge; skipped when the directory is absent | `CLAUDE.md` imports this repository's `AGENTS.md` |
+| SDK workers | `~/.claude-brew` | Settings only (effort high); skipped when absent | None |
 
 ```text
 PranavSkills/
@@ -124,6 +127,39 @@ PranavSkills/
 ```
 
 Adding or removing a skill requires another render. Editing an existing symlinked skill does not.
+
+Profiles can also pin harness settings, and `doctor.mjs` fails if they drift:
+
+- `optional: true` skips the profile on machines without that config directory.
+- `settings` merges keys into a Claude `settings.json` one level deep (for example `effortLevel`).
+- `disablePlugins` turns plugins off in Claude `settings.json` and in existing Codex
+  `config.toml` sections, for plugins that add tokens to every session but see little use.
+
+Skills no other skill calls (`show-me`, `handoff`, `postmortem`, `change-contract`) are
+user-invoked in Claude Code to keep the listing small. Codex ignores that flag, so it still routes
+to them; `supervise` is hidden from Codex through `agents/openai.yaml`.
+
+## Knowledge Base
+
+The `knowledge/` directory holds domain-specific knowledge bases that agents load on demand.
+Each domain has its own directory with an `INDEX.md` manifest that lists every record and its
+one-line description. The frontmatter `record-count` and per-section counts in `INDEX.md` must
+match the files on disk; `assert-index-count.py` enforces this (see Verify below).
+
+Domains (`agent-arch`, `business`, `sessions`, `ux`) follow the same INDEX.md convention.
+Layered domains split records into `semantic/` (entity and reference pages), `procedural/`
+(runbooks), `episodic/` (dated event records), and `flow/` (end-to-end sequences).
+
+Records use Obsidian-style `[[wikilinks]]` for cross-references; `assert-wikilinks.py` checks that
+every link resolves (see Verify below).
+
+**How agents query it.** Entity questions go to the semantic layer by exact filename
+(`knowledge/<domain>/semantic/<Name>.md`). How-do-I questions go to procedural first. Event
+questions go to episodic, sorted by recency. Anything with a fast staleness class should be
+re-verified live before it is relied on. Each domain's `INDEX.md` is the entry point.
+
+The `memory/` directory holds lightweight preference files (e.g. `memory/preference/style.md`)
+that are not part of the knowledge base but persist personal conventions.
 
 ## Install
 
@@ -184,6 +220,55 @@ protection.
 Skill descriptions are triggers, not summaries. Keep procedures concise, keep detailed reference
 material behind JIT links, and avoid naming one harness inside a shared skill. The full rules live
 in [`CONVENTIONS.md`](CONVENTIONS.md).
+
+## Verify
+
+This repository has no unit test suite. The verification surface is: regeneration should be
+idempotent, the two knowledge-base check scripts should pass, and the doctor should report no
+problems in the skill definitions.
+
+**Regeneration (idempotent).** Running `node scripts/render.mjs` a second time with no source
+changes should produce no new writes. This confirms the generated context files and symlinks are
+stable.
+
+**`doctor.mjs` -- skill and harness lint.** Validates every skill's frontmatter against
+`CONVENTIONS.md` (required keys, description word budget, no harness leakage), checks the
+aggregate description budget across all model-invoked skills, and verifies that each rendered
+harness's symlinks point back to this repository. Run it from the repo root:
+
+```bash
+node scripts/doctor.mjs
+```
+
+Exits 0 when no problems are found. Warnings (e.g. name collisions on a shared target) do not
+fail the run; problems (missing frontmatter, broken symlinks, drifted copies) do.
+
+**`assert-index-count.py` -- INDEX.md vs. disk.** Compares the record list in a domain's
+`INDEX.md` against the actual files on disk. Catches phantom entries, missing entries, and a
+stale frontmatter `record-count`. A domain argument is required for any domain other than the
+default (`agent-arch`):
+
+```bash
+python3 scripts/assert-index-count.py agent-arch
+python3 scripts/assert-index-count.py ux
+```
+
+Exits 0 on pass, 1 on any mismatch. Both enumerated sections (file-by-file comparison) and
+count-declared sections (header count vs. disk count) are supported.
+
+**`assert-wikilinks.py` -- wikilink integrity.** Scans every `[[wikilink]]` in a domain's
+records and checks that each one resolves to an actual `.md` file using Obsidian's shortest-path
+rules. Reports broken links (no target) and dangling-resolvable links (a name-variant file
+exists but the link text does not match). Both count as failures. Same argument convention:
+
+```bash
+python3 scripts/assert-wikilinks.py agent-arch
+python3 scripts/assert-wikilinks.py ux
+```
+
+Both check scripts accept a single positional argument (the domain name, bare, no flags).
+Passing a flag like `--help` is rejected. Omitting the argument defaults to `agent-arch`. Run
+without arguments to see the list of available domains.
 
 ## Safety
 

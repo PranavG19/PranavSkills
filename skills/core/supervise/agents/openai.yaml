@@ -2,3 +2,5 @@ interface:
   display_name: "Supervise Projects"
   short_description: "Coordinate project orchestrators through cmux"
   default_prompt: "Use $supervise to coordinate the active projects through cmux."
+policy:
+  allow_implicit_invocation: false

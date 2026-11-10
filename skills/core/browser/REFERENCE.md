@@ -2,11 +2,66 @@
 
 Read the section for the branch you're on; `SKILL.md` carries everything every run needs.
 
-## Attaching to the user's EXISTING authenticated Chrome
+## Agent-owned authenticated Chrome (preferred)
 
-When the task needs the user's *authenticated* session (SSO or another logged-in app), attach to their
-running Chrome instead of letting `agent-browser` spawn its own; a fresh spawn has no cookies and lands
-on a login page. The rules, each learned the hard way:
+The default when a task needs Pranav's authenticated session on an SSO-gated site. A fresh,
+agent-owned Chrome seeded with his existing credentials completes SSO **silently**: no approval
+prompt, no keyboard, and it never touches the browser he is using.
+
+### Mechanism
+
+Seed a Playwright `storageState` file from credential sources that are already on disk and need no
+prompt: the SSO tool's cookie jar. Write a
+small local script that reads them and prints the state file, and keep that script out of public
+repositories because it names organization-specific paths.
+
+Never print cookie values or tokens into docs, logs or terminal output. Report names and lengths
+only. Treat the generated state file as a credential and write it under `/tmp`.
+
+### The invocation
+
+```bash
+python3 <your-state-builder>.py > /tmp/sso-state.json
+agent-browser --state /tmp/sso-state.json \
+  --executable-path "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  open https://intranet.example.com/
+```
+
+### Findings, each learned by failing first
+
+- **Use real Google Chrome through `--executable-path` on a managed device.** With agent-browser's
+  bundled Chromium the identical state file can die on `net::ERR_INVALID_AUTH_CREDENTIALS`. Real
+  Chrome carries the managed-device policy, corporate cert trust and Kerberos config Chromium lacks.
+- **`--state` and `--profile` are mutually exclusive**: `Cannot use storage_state with
+  profile`. Choose `--state`. Regenerating it per run is a feature: the jar is the single
+  source of truth, so there is no stale-profile failure.
+- **Session cookies need `expires: -1`**, and `sameSite: "None"` so the cross-site SSO
+  redirect chain actually carries them.
+- **Tools with their own auth are a true negative.** A site that does not use the SSO provider
+  lands on its own login page. The recipe covers SSO-gated sites, not every internal tool.
+- **Prove it on a site absent from the jar.** Reaching an authenticated page whose cookies are not
+  in the seeded jar shows the full silent redirect ran rather than a cookie being replayed.
+
+### Troubleshooting the seeded path
+
+- **`net::ERR_INVALID_AUTH_CREDENTIALS`** -> you forgot `--executable-path`; it is on bundled
+  Chromium. Re-run with real Chrome.
+- **Lands on an SSO login page** -> the jar expired. Only Pranav can refresh it.
+- **The page sticks on an auth redirect** -> the site blocks headless Chrome. Add `--headed`.
+- **`Cannot use storage_state with profile`** -> drop `--profile`.
+
+### The one thing Pranav must do
+
+Refresh his SSO session once a day. That buys unattended authenticated browsing for the rest of
+the day. Never ask him to click a connection prompt for work the seeded path can do.
+
+## Attaching to the user's live Chrome (only when his tabs are the point)
+
+Reach for this when the seeded path above fails, or when the task genuinely needs *his* live
+session: an app already in a particular state, or a login only he can complete. It costs him
+a short, flaky approval prompt at the keyboard, so it is no longer the default.
+
+The rules, each learned the hard way:
 
 1. **`agent-browser connect <port>` is the reliable attach.** `--cdp <port>` as a per-command flag is
    not. Subcommands like `tab new` ignored `--cdp 9333` and auto-launched on 9222 instead

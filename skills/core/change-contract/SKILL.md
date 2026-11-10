@@ -1,6 +1,7 @@
 ---
 name: change-contract
-description: Use before a scoped, unticketed fix on a shared package, or when writing a CR/PR description. Freezes the change's success criterion, non-goals, and diff budget before the first edit, then reuses it as the writeup. Whole features are spec's job.
+description: Freezes a scoped, unticketed fix's success criterion, non-goals, and diff budget before the first edit, then reuses it as the CR/PR description. Whole features are spec's job.
+disable-model-invocation: true
 ---
 
 `change-contract → freeze the requirement card → stamp the artifact epoch → build inside the budget → render the submission writeup`

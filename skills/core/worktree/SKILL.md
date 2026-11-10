@@ -28,5 +28,5 @@ git worktree prune                      # clean stale entries
 ## Constraints
 
 - A branch checks out in only one worktree at a time. Remove each worktree as soon as its branch merges or is abandoned, so `git worktree list` stays an accurate picture.
-- Pushing is the human's step; a hook blocks `git push` from a worktree.
+- Pushing follows the pushing rule in `memory/preference/github-review.md`; the shell guard blocks forced pushes and pushes to review-only remotes.
 - Non-git VCS, or worktrees unavailable → fall back to a separate clone and say so.

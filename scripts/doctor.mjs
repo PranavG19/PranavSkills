@@ -102,6 +102,27 @@ for (const domain of existsSync(join(ROOT, "knowledge")) ? readdirSync(join(ROOT
 for (const f of readdirSync(join(ROOT, "profiles")).filter((f) => f.endsWith(".json"))) {
   const p = JSON.parse(readFileSync(join(ROOT, "profiles", f), "utf8"));
   const target = expand(p.target);
+  if (p.optional && !existsSync(target)) continue;
+  // Pinned settings must still hold: a harness update or a manual edit can quietly revert them.
+  if (p.kind === "claude" && (p.settings || p.disablePlugins)) {
+    const sf = join(target, "settings.json");
+    const s = existsSync(sf) ? JSON.parse(readFileSync(sf, "utf8")) : {};
+    for (const [k, v] of Object.entries(p.settings ?? {})) {
+      const have = v && typeof v === "object" ? Object.entries(v).every(([kk, vv]) => s[k]?.[kk] === vv) : s[k] === v;
+      if (!have) fail(f, `${sf} ${k} is not ${JSON.stringify(v)}; re-render`);
+    }
+    for (const plugin of p.disablePlugins ?? []) {
+      if (s.enabledPlugins?.[plugin] !== false) fail(f, `${sf} still enables ${plugin}; re-render`);
+    }
+  }
+  if (p.kind === "codex" && p.disablePlugins?.length && existsSync(join(target, "config.toml"))) {
+    const toml = readFileSync(join(target, "config.toml"), "utf8");
+    for (const plugin of p.disablePlugins) {
+      const m = toml.match(new RegExp(`\\[plugins\\."${plugin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"\\][^\\[]*?enabled\\s*=\\s*true`));
+      if (m) fail(f, `config.toml still enables ${plugin}; re-render`);
+    }
+  }
+  if (!p.buckets.length) continue;
   const skillsDir = join(target, "skills");
   if (!existsSync(skillsDir)) { warn(f, `${skillsDir} not rendered yet`); continue; }
   const expectedSkills = new Map();
@@ -137,13 +158,11 @@ for (const f of readdirSync(join(ROOT, "profiles")).filter((f) => f.endsWith(".j
     }
     fail(f, `${rendered} does not point to the selected repository skill`);
   }
-  // Amazon isolation: the personal profile must not reach internal material.
+  // Isolation: the personal profile must not reach work-only skills.
   if (/personal/.test(f)) {
-    const leaks = [...readdirSync(skillsDir), ...(existsSync(join(target, "knowledge")) ? readdirSync(join(target, "knowledge")) : [])]
-      .filter((e) => /amazon|brazil|pantheon/i.test(e));
-    for (const l of leaks) fail(f, `Amazon-internal material "${l}" leaked into the personal profile`);
-    const ctx = join(target, "CLAUDE.md");
-    if (existsSync(ctx) && /amazon/i.test(readFileSync(ctx, "utf8"))) fail(f, "personal CLAUDE.md imports Amazon policy");
+    const workDir = join(ROOT, "skills", "work");
+    const workSkills = new Set(existsSync(workDir) ? readdirSync(workDir) : []);
+    for (const s of readdirSync(skillsDir).filter((e) => workSkills.has(e))) fail(f, `work skill "${s}" leaked into the personal profile`);
   }
 }
 

@@ -31,8 +31,8 @@ Sibling skills sit elsewhere. `critiquing` runs a design-time panel on the same 
 3. **Prove sensitivity red-first.** Run the new/changed test against the *parent* state and confirm
    it fails, and fails for the intended reason, not an unrelated error (import, typo, wrong
    fixture), then confirm it passes on the new code. A test green on both proves nothing about the
-   change. For a new feature, temporarily break the implementation and confirm the test catches
-   it. This proves the test observes the change; it does not make its expected value independent.
+   change. For a new feature, temporarily break the implementation, diff against a clean copy to
+   prove the break landed, and confirm the test catches it. This proves the test observes the change; it does not make its expected value independent.
 
 4. **Confirm the assertion actually ran.** An assertion-free or guarded test (`if (cond) expect(...)` where `cond` is false on the failing input) reaches green while verifying nothing. Make "did the assertion fire" a measured number (`expect.assertions(N)` or equivalent) rather than an eyeball.
 

@@ -1,6 +1,6 @@
 ---
 name: supervise
-description: Coordinate several project orchestrators through cmux while preserving ticket, worktree, review, and integration boundaries.
+description: Coordinate several project orchestrators through cmux while preserving ticket, worktree, review, and integration boundaries, with optional T3 thread-local browser and device evidence.
 disable-model-invocation: true
 ---
 
@@ -10,8 +10,9 @@ Use this when one human-facing agent coordinates several active projects. It sch
 observes; each project orchestrator owns its own `orchestrate` pipeline and local board.
 
 1. **Inventory projects.** For each root, record the objective, cmux workspace/surface ref, active
-   spec, `.agents/tickets/` board, branch/worktree state, and next human decision. Existing
-   workspaces win over duplicates.
+   spec, `.agents/tickets/` board, branch/worktree state, and next human decision. When T3 owns
+   thread-local QA, also record the T3 thread, preview-tab, device-host, and device IDs. Existing
+   workspaces and threads win over duplicates.
 2. **Assign one project orchestrator.** Launch or resume one durable agent session per project
    through `cmux`. Give it the project root, objective, current artifact, and instruction to use
    `orchestrate`. Before sending, read the addressed surface and confirm it is idle at the expected
@@ -22,13 +23,14 @@ observes; each project orchestrator owns its own `orchestrate` pipeline and loca
 4. **Require isolation and ownership.** Every writing worker gets one claimed ticket and one
    worktree. Shared symbols, migrations, generated files, configuration, and lockfiles have one
    writer; other workers submit intents to that owner.
-5. **Observe transitions.** Prefer cmux events, notifications, workspace status, and progress.
-   Inspect the addressed surface when status is stale or ambiguous. A quiet terminal is not proof
-   of completion or failure.
+5. **Observe transitions.** Prefer cmux events, notifications, workspace status, and progress for
+   fleet state. Use T3 preview or Device panel evidence for a thread's browser or native QA when
+   available. Inspect the addressed surface when status is stale or ambiguous. A quiet terminal or
+   visible device stream is not proof of completion or failure.
 6. **Enforce evidence.** A ticket reaches review only with its focused red/green history, affected
-   checks, and risk-selected `verify` evidence. UI/device tickets include screenshots or recordings
-   and interaction results.
-7. **Review independently.** Start `code-review` in a fresh context. A worker never approves its
+   checks, and risk-selected `verify` evidence. UI/device tickets include screenshots or
+   recordings, interaction results, and the exact T3 or cmux surface and device identity used.
+7. **Review independently.** Start `ticket-review` in a fresh context. A worker never approves its
    own ticket. Send requested changes back to the same ticket and owner.
 8. **Integrate serially.** Land approved branches through one project integration owner in
    dependency order. After each integration, run the affected guard checks; after the frontier

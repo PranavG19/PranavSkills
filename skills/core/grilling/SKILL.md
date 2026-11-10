@@ -12,7 +12,8 @@ Reference: `_shared/CONTEXT-FORMAT.md`, `_shared/ADR-FORMAT.md`. Output target: 
 ## The interview
 Walk each branch of the design tree, resolving decisions and their dependencies one at a time.
 - **One question at a time.** Never dump a list. It overwhelms and gets half-answered. Ask, wait, then ask the next informed by the answer.
-- **Always give your recommended answer** and reasoning with the question. The user reacts faster to a proposal than an open prompt. On a genuine fork or close call, also name what would flip your recommendation, the answer, constraint, or evidence that would change it.
+- **Always give your recommended answer** and reasoning with the question. The user reacts faster to a proposal than an open prompt. On a genuine fork or close call, also name what would flip your recommendation, the answer, constraint, or evidence that would change it. Word the question so "yes" accepts your recommendation.
+- **Locate every question in the experience before asking it.** Name the screen or scenario, what the user just did, what control or state is being discussed, and what happens immediately afterward. Never ask about an orphaned label such as `Change`, `Continue`, or `Retry` without first showing where it appears and what it affects.
 - **If the codebase can answer it, read the code** instead of asking.
 - **Drive toward precision, not coverage.** Stop when the decision tree is resolved, including the mandatory concerns below.
 

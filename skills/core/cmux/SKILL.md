@@ -5,14 +5,33 @@ description: Control cmux workspaces, terminals, browsers, simulators, and agent
 
 `identify -> address stable ref -> act -> observe exact target -> record ref`
 
+## T3 routing boundary
+
+Use T3 collaborative preview and T3 Device panel for one thread's browser or native QA when their
+tools are available and authorized. Use cmux when work needs persistent cross-thread terminals,
+several visible agents, long-running logs, remote sessions, resource supervision, or a fallback
+after T3 reports device access unavailable.
+
+Do not create duplicate browser or simulator surfaces in both products without a named evidence or
+supervision reason.
+
 Use the installed CLI, preferring `cmux` on `PATH` and falling back to:
 
 ```bash
 /Applications/cmux.app/Contents/Resources/bin/cmux
 ```
 
-1. **Confirm access.** Run `cmux identify` or `cmux tree`. A process launched outside cmux may be
-   unable to access its socket; report that boundary instead of guessing through GUI focus.
+1. **Confirm access.** Run `cmux identify` or `cmux tree`. If the socket returns
+   `auth_required`, inspect `~/.config/cmux/cmux.json` before asking the user for anything:
+   - `socketControlMode: "password"` with no non-empty `socketPassword` is an inconsistent local
+     configuration, not evidence that the user has or knows a password.
+   - When the user has authorized this external process to control their local cmux, back up the
+     config, set `automation.socketControlMode` to `"allowAll"`, remove `socketPassword`, run
+     `cmux config doctor`, then `cmux reload-config` and retry `identify`.
+   - Never recover or print an old socket credential from shell history, agent transcripts, or
+     backups. A cmux socket credential is not an account password.
+   A process launched outside cmux can otherwise be intentionally denied by `cmuxOnly`; report
+   that boundary when external control was not authorized.
 2. **Discover targets.** Use `tree`, `list-workspaces`, `list-panes`, or
    `list-pane-surfaces`. Capture the returned workspace and surface refs.
 3. **Address explicitly.** Pass `--workspace` and `--surface` for cross-project actions. Use

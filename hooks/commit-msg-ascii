@@ -1,0 +1,58 @@
+#!/bin/bash
+# Git commit-msg hook: reject non-ASCII in commit messages.
+#
+# Why this exists. Some review tools rewrite non-ASCII bytes in commit
+# messages to literal `???`, and it does so in BOTH the uploaded review AND the
+# commit it amends (which seeds the review description). The damage reaches
+# permanent history, not just a re-cuttable review. Common offenders: em/en
+# dashes, smart quotes, ellipses, non-breaking spaces, and arrow characters.
+#
+# The check matches the one-liner from the standing rules:
+#   LC_ALL=C grep -n '[^[:blank:] -~]'
+# which finds any byte outside printable ASCII plus tab and space.
+#
+# Install:
+#   ln -sf /path/to/PranavSkills/hooks/commit-msg-ascii .git/hooks/commit-msg
+#   chmod +x /path/to/PranavSkills/hooks/commit-msg-ascii
+#
+# Bypass (after reading the message yourself):
+#   git commit --no-verify ...
+#
+set -uo pipefail
+
+msg_file="${1:?commit-msg hook requires the message file path as \$1}"
+
+# Strip comment lines (git's default comment char is #). The commit message
+# file includes diff context, status, and scissors lines that are stripped
+# before the final message. We only check lines the user wrote.
+clean=$(sed '/^#/d' "$msg_file")
+
+# LC_ALL=C makes grep treat each byte independently, so multi-byte UTF-8
+# sequences are caught as individual non-ASCII bytes. The range ' -~' is
+# ASCII 0x20 through 0x7E (printable). [:blank:] adds tab (0x09). Anything
+# outside that is rejected.
+offending=$(printf '%s\n' "$clean" | LC_ALL=C grep -n '[^[:blank:] -~]' || true)
+
+if [ -n "$offending" ]; then
+    echo >&2
+    echo "BLOCKED: commit message contains non-ASCII characters." >&2
+    echo >&2
+    echo "Some review tools rewrite non-ASCII to literal ??? in both the" >&2
+    echo "review and the commit it amends, so the damage reaches permanent" >&2
+    echo "history. Replace em/en dashes, smart quotes, ellipses, arrows," >&2
+    echo "and non-breaking spaces with their ASCII equivalents." >&2
+    echo >&2
+    echo "Offending lines:" >&2
+    printf '%s\n' "$offending" | head -10 | sed 's/^/    /' >&2
+    count=$(printf '%s\n' "$offending" | wc -l | tr -d ' ')
+    if [ "$count" -gt 10 ]; then
+        echo "    ... and $((count - 10)) more" >&2
+    fi
+    echo >&2
+    echo "Fix with: git commit --amend" >&2
+    echo "Bypass with: git commit --no-verify (after reading the message)" >&2
+    echo >&2
+    exit 1
+fi
+
+exit 0

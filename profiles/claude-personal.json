@@ -1,0 +1,25 @@
+{
+  "$comment": "Homebrew Claude Code, isolated config dir. Hooks are left to the existing wiring. Optional: only machines with the personal install have it.",
+  "kind": "claude",
+  "target": "~/.claude-personal",
+  "optional": true,
+  "buckets": [
+    "core"
+  ],
+  "knowledge": [
+    "agent-arch",
+    "business",
+    "ux",
+    "sessions"
+  ],
+  "context": [
+    "AGENTS.md",
+    "memory/preference/style.md",
+    "memory/preference/engineering.md",
+    "memory/preference/github-review.md"
+  ],
+  "hooks": [],
+  "settings": {
+    "includeCoAuthoredBy": false
+  }
+}

@@ -16,6 +16,12 @@ I would rather hear that there is a simpler approach than spend time polishing t
 my plan has a meaningful downside, say so and show me the alternative. Once we make the call,
 follow it. Ask about confusing parts while they are still cheap to resolve.
 
+Phrase the question for someone who is not already paged in. Lead with the plain-language stake and
+put identifiers after it as pointers, not as the explanation. "Two tests need an unread marker, the
+design has nowhere to store it, and an accepted decision bans new columns" beats the same sentence
+written in row ids and document line numbers, at the same length. If I would have to open a file to
+understand what I am choosing between, rewrite it.
+
 ## Understand what is there
 
 Read the implementation before explaining how it behaves. Names and signatures are clues, not
