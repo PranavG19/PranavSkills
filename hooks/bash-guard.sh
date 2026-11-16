@@ -77,6 +77,11 @@ if [[ "$command" =~ $push_word ]]; then
       block "git push with repository path $path: use a plain path, ~ or ~/..., so the guard checks the repository the shell enters."
     fi
   done
+  # cd resolves .. without following symlinks (git -C follows them, as the guard does), and zsh
+  # reads +N as a directory stack entry.
+  if [[ "$cd_path" =~ (^|/)\.\.(/|$) || "$cd_path" == +* ]]; then
+    block "git push after cd $cd_path: cd into the repository by a path without .. or +N, or use git -C."
+  fi
   for arg in "${push_args[@]}"; do
     case "$arg" in
       --*)

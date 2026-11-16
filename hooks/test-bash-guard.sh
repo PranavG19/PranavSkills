@@ -113,6 +113,17 @@ expect_block_in "$tmp/review" "cd ~+ && git push origin main"
 expect_block_in "$tmp/review" "cd ~- && git push origin main"
 expect_block_in "$tmp/review" "cd - && git push origin main"
 expect_block_in "$tmp/review" "git -C ~root push origin main"
+# cd resolves .. without following symlinks and zsh reads +N as the directory stack, so both can land somewhere other than the literal path.
+for decoy in '+0' '+00'; do
+  git init -q "$tmp/review/$decoy" && git -C "$tmp/review/$decoy" remote add origin https://github.com/example/decoy.git
+done
+git init -q "$tmp/decoy" && git -C "$tmp/decoy" remote add origin https://github.com/example/decoy.git
+mkdir "$tmp/decoy/sub" && ln -s "$tmp/decoy/sub" "$tmp/review/link"
+expect_block_in "$tmp/review" "cd +0 && git push origin main"
+expect_block_in "$tmp/review" "cd +00 && git push origin main"
+expect_block_in "$tmp/review" "cd link/.. && git push origin main"
+expect_block_in "$tmp/review/link" "cd .. && git push origin main"
+expect_allow_in "$tmp/review" "git -C link/.. push origin main"
 
 # Without jq, a Codex denial still has to reach Codex as a block.
 nojq="$tmp/nojq-bin"
