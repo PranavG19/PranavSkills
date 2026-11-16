@@ -8,8 +8,8 @@
 
 ## PRs
 
-- One kind of change per PR, under about 300 changed lines, with each change kept beside its own
-  tests.
+- One kind of change per PR, with each change kept beside its own tests. Size a PR by what one
+  reviewer can verify against its tests, which for a slice with tests can be 1,000 lines or more.
 - Put each part of a feature in the earliest PR where that kind of code lives.
 - A PR uses only its own code or code already on main. In a stack, each PR targets the one below
   it and builds on its own.

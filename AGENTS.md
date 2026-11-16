@@ -80,6 +80,9 @@ prose. Structural colons in YAML frontmatter, `file:line` references, and list h
 
 If a sentence would read unchanged in any other project's writeup, it says nothing here, so cut it.
 
+Before writing a doc, apply the rules in `memory/preference/writing-lessons.md`. When I or a
+reviewer reject wording, add the lesson there in the same turn.
+
 ## Match the codebase
 
 The local style wins. When the codebase has no opinion, prefer `const` unless reassignment is real,
