@@ -128,6 +128,23 @@ expect_allow_in "$tmp/review" "git -C link/.. push origin main"
 expect_block_in "$tmp/gh" "git push>/dev/null --force origin main"
 expect_block_in "$tmp/gh" "git push</dev/null --delete origin old"
 expect_block_in "$tmp/review" "git push>/dev/null origin main"
+# An expansion that produces nothing can be glued to either word, so any non-word character ends it.
+expect_block_in "$tmp/gh" "git push\$'' --force origin main"
+expect_block_in "$tmp/gh" "git push\$\"\" --delete origin old"
+expect_block_in "$tmp/gh" "git push\${IFS}--mirror origin"
+expect_block_in "$tmp/gh" "git push\$(true) --no-verify origin main"
+expect_block_in "$tmp/review" "git push\$'' origin main"
+expect_block_in "$tmp/gh" "\${x}git push --force origin main"
+# A quoted separator before the word is one harmless argument to the shell, so detection must read past it.
+for sep in ';' '|' '&' '(' ')'; do
+  expect_block_in "$tmp/gh" "git -c guard.note='$sep' push --force origin main"
+  expect_block_in "$tmp/review" "git -c guard.note='$sep' push origin main"
+  codex_output=$(jq -nc --arg command "git -c guard.note='$sep' push --force origin main" '{tool_input: {command: $command}}' | "$guard" codex 2>/dev/null)
+  if [[ "$codex_output" != *'"permissionDecision":"deny"'* ]]; then
+    printf 'FAIL expected a Codex deny for a quoted %s before the word (output=%s)\n' "$sep" "$codex_output"
+    failures=$((failures + 1))
+  fi
+done
 # An all-zero source is the null object id, which deletes the destination ref.
 expect_block_in "$tmp/gh" "git push origin 0000000000000000000000000000000000000000:main"
 expect_block_in "$tmp/gh" "git push origin 0000000000000000000000000000000000000000000000000000000000000000:main"
@@ -144,9 +161,17 @@ if [[ "$codex_output" != *'"permissionDecision":"deny"'* ]]; then
   printf 'FAIL expected a Codex deny without jq (output=%s)\n' "$codex_output"
   failures=$((failures + 1))
 fi
-codex_output=$(jq -nc '{tool_input: {command: "git push>/dev/null --force origin main"}}' | "$guard" codex 2>/dev/null)
-if [[ "$codex_output" != *'"permissionDecision":"deny"'* ]]; then
-  printf 'FAIL expected a Codex deny for a redirected forced push (output=%s)\n' "$codex_output"
+for glued in 'git push>/dev/null --force origin main' "git push\$'' --force origin main"; do
+  codex_output=$(jq -nc --arg command "$glued" '{tool_input: {command: $command}}' | "$guard" codex 2>/dev/null)
+  if [[ "$codex_output" != *'"permissionDecision":"deny"'* ]]; then
+    printf 'FAIL expected a Codex deny for %s (output=%s)\n' "$glued" "$codex_output"
+    failures=$((failures + 1))
+  fi
+done
+# A review-only host pattern that is not a valid regex fails closed.
+bad_regex_output=$(jq -nc --arg cwd "$tmp/gh" '{tool_input: {command: "git push origin main"}, cwd: $cwd}' | BASH_GUARD_NO_PUSH_HOSTS='(' "$guard" 2>&1)
+if [[ "$bad_regex_output" != BLOCKED:* ]]; then
+  printf 'FAIL expected a block when BASH_GUARD_NO_PUSH_HOSTS is not a valid regex (output=%s)\n' "$bad_regex_output"
   failures=$((failures + 1))
 fi
 expect_block_in "$tmp/gh" "git push --delete origin old"

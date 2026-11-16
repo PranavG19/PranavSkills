@@ -51,20 +51,25 @@ fi
 # slip past the checks below. Only spaces and tabs separate words, so a newline cannot start a
 # second command.
 no_push_hosts=${BASH_GUARD_NO_PUSH_HOSTS:-}
-push_word="(^|[[:space:];|&()\"'\`])([^[:space:];|&()\"'\`]*/)?git([^;|&()]*)[[:space:]]push($segment_boundary|[<>\"'\`]|$)"
+# Detection is deliberately broad: the word git anywhere before the word push, across any
+# separator, since a quoted ';' is one harmless argument to the shell. Any non-word character
+# ends a word, since an empty expansion glued to it ($'', ${x}) leaves it intact for the shell.
+# The strict plain_push check below rejects whatever this catches.
+push_word="(^|[^[:alnum:]_.-])git(.*[^[:alnum:]_-])?push([^[:alnum:]_-]|$)"
 blank=$' \t'
 path_word='~?[A-Za-z0-9._/@=+-]+'
 push_arg='[A-Za-z0-9._/:@=+^~-]+'
 plain_push="^[$blank]*(cd[$blank]+($path_word)[$blank]*&&[$blank]*)?git([$blank]+-C[$blank]+($path_word))?[$blank]+push(([$blank]+$push_arg)*)[$blank]*\$"
 
-# Hostnames are case-insensitive, so the review-only check is too.
+# Hostnames are case-insensitive, so the review-only check is too. An invalid pattern (status 2)
+# counts as a match, so a broken setting blocks instead of waving every push through.
 is_no_push_host() {
   [[ -n "$no_push_hosts" ]] || return 1
   shopt -s nocasematch
   [[ "$1" =~ $no_push_hosts ]]
-  local matched=$?
+  local status=$?
   shopt -u nocasematch
-  return $matched
+  [[ $status -ne 1 ]]
 }
 
 push_dir() {
