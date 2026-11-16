@@ -95,13 +95,14 @@ function renderProfile(name) {
     retract(skillsDir, wanted);
   }
 
-  // --- knowledge: symlinked from the external vault (AGENT_KNOWLEDGE_DIR or ~/agents/knowledge) ---
+  // --- knowledge: symlinked from the external vault (AGENT_KNOWLEDGE_DIR or ~/agents/knowledge),
+  //     falling back to a domain bundled in this repository's knowledge/ dir ---
   const kDir = join(target, "knowledge");
   const wantedK = new Set(profile.knowledge ?? []);
   if (wantedK.size && !DRY) mkdirSync(kDir, { recursive: true });
   for (const domain of wantedK) {
-    const src = join(KNOWLEDGE_ROOT, domain);
-    if (!existsSync(src)) { log.push(`  MISSING  knowledge/${domain} (not in ${KNOWLEDGE_ROOT})`); continue; }
+    const src = [join(KNOWLEDGE_ROOT, domain), join(ROOT, "knowledge", domain)].find((p) => existsSync(p));
+    if (!src) { log.push(`  MISSING  knowledge/${domain} (not in ${KNOWLEDGE_ROOT} or the repository)`); continue; }
     link(src, join(kDir, domain), profile.sharedTarget);
   }
   retract(kDir, wantedK);
