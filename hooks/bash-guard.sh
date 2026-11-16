@@ -51,11 +51,21 @@ fi
 # slip past the checks below. Only spaces and tabs separate words, so a newline cannot start a
 # second command.
 no_push_hosts=${BASH_GUARD_NO_PUSH_HOSTS:-}
-push_word="(^|[[:space:];|&()\"'\`])([^[:space:];|&()\"'\`]*/)?git([^;|&()]*)[[:space:]]push($segment_boundary|[\"'\`]|$)"
+push_word="(^|[[:space:];|&()\"'\`])([^[:space:];|&()\"'\`]*/)?git([^;|&()]*)[[:space:]]push($segment_boundary|[<>\"'\`]|$)"
 blank=$' \t'
 path_word='~?[A-Za-z0-9._/@=+-]+'
 push_arg='[A-Za-z0-9._/:@=+^~-]+'
 plain_push="^[$blank]*(cd[$blank]+($path_word)[$blank]*&&[$blank]*)?git([$blank]+-C[$blank]+($path_word))?[$blank]+push(([$blank]+$push_arg)*)[$blank]*\$"
+
+# Hostnames are case-insensitive, so the review-only check is too.
+is_no_push_host() {
+  [[ -n "$no_push_hosts" ]] || return 1
+  shopt -s nocasematch
+  [[ "$1" =~ $no_push_hosts ]]
+  local matched=$?
+  shopt -u nocasematch
+  return $matched
+}
 
 push_dir() {
   local base=$1 path=$2
@@ -102,7 +112,11 @@ if [[ "$command" =~ $push_word ]]; then
         block "git push $arg is disabled: a + refspec forces and a : refspec deletes."
         ;;
     esac
-    if [[ -n "$no_push_hosts" && "$arg" =~ $no_push_hosts ]]; then
+    # An all-zero source is the null object id, which deletes the destination ref.
+    if [[ "${arg%%:*}" =~ ^0+$ ]]; then
+      block "git push $arg is disabled: an all-zero source deletes the remote ref."
+    fi
+    if is_no_push_host "$arg"; then
       block "$arg is a review-only host: send the change through its review tool, not a push."
     fi
   done
@@ -113,7 +127,7 @@ if [[ "$command" =~ $push_word ]]; then
   if ! remotes=$(git -C "$repo" remote -v 2>/dev/null); then
     block "git push from $repo: not a git repository the guard can read."
   fi
-  if [[ -n "$no_push_hosts" && "$remotes" =~ $no_push_hosts ]]; then
+  if is_no_push_host "$remotes"; then
     block "$repo has a review-only remote: send the change through its review tool, not a push."
   fi
 fi

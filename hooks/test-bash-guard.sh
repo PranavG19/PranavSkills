@@ -124,6 +124,17 @@ expect_block_in "$tmp/review" "cd +00 && git push origin main"
 expect_block_in "$tmp/review" "cd link/.. && git push origin main"
 expect_block_in "$tmp/review/link" "cd .. && git push origin main"
 expect_allow_in "$tmp/review" "git -C link/.. push origin main"
+# A redirection glued to the word still hands git the remaining arguments.
+expect_block_in "$tmp/gh" "git push>/dev/null --force origin main"
+expect_block_in "$tmp/gh" "git push</dev/null --delete origin old"
+expect_block_in "$tmp/review" "git push>/dev/null origin main"
+# An all-zero source is the null object id, which deletes the destination ref.
+expect_block_in "$tmp/gh" "git push origin 0000000000000000000000000000000000000000:main"
+expect_block_in "$tmp/gh" "git push origin 0000000000000000000000000000000000000000000000000000000000000000:main"
+# Hostnames are case-insensitive.
+expect_block_in "$tmp/gh" "git push ssh://GIT.REVIEW.EXAMPLE:2222/pkg/Example main"
+git init -q "$tmp/upper" && git -C "$tmp/upper" remote add origin ssh://Git.Review.Example:2222/pkg/Example
+expect_block_in "$tmp/upper" "git push origin main"
 
 # Without jq, a Codex denial still has to reach Codex as a block.
 nojq="$tmp/nojq-bin"
@@ -131,6 +142,11 @@ mkdir "$nojq" && ln -s "$(command -v cat)" "$nojq/cat"
 codex_output=$(printf '{"tool_input":{"command":"git push --force origin main"}}' | PATH="$nojq" "$guard" codex 2>/dev/null)
 if [[ "$codex_output" != *'"permissionDecision":"deny"'* ]]; then
   printf 'FAIL expected a Codex deny without jq (output=%s)\n' "$codex_output"
+  failures=$((failures + 1))
+fi
+codex_output=$(jq -nc '{tool_input: {command: "git push>/dev/null --force origin main"}}' | "$guard" codex 2>/dev/null)
+if [[ "$codex_output" != *'"permissionDecision":"deny"'* ]]; then
+  printf 'FAIL expected a Codex deny for a redirected forced push (output=%s)\n' "$codex_output"
   failures=$((failures + 1))
 fi
 expect_block_in "$tmp/gh" "git push --delete origin old"
