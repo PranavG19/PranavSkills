@@ -82,6 +82,36 @@ expect_block_in "$tmp/gh" "git push --force-with-lease origin main"
 expect_block_in "$tmp/gh" "git push --forc origin main"
 expect_block_in "$tmp/gh" "git push origin +HEAD:main"
 expect_block_in "$tmp/gh" "git push origin :old"
+# The shell strips quotes and escapes before git sees them, so quoted push arguments must not slip past the option checks.
+expect_block_in "$tmp/gh" "git push \"--force\" origin main"
+expect_block_in "$tmp/gh" "git push '--force-with-lease' origin main"
+expect_block_in "$tmp/gh" "git push origin '+HEAD:main'"
+expect_block_in "$tmp/gh" "git push origin \":old\""
+expect_block_in "$tmp/gh" "git push \\--force origin main"
+# Brace expansion, globs and newlines also rewrite the words git receives.
+expect_block_in "$tmp/gh" "git push {--force,origin} main"
+expect_block_in "$tmp/gh" "git push --{force,force} origin main"
+expect_block_in "$tmp/gh" "git push {origin,+HEAD:main}"
+expect_block_in "$tmp/gh" "git push origin {main,:old}"
+expect_block_in "$tmp/gh" "git push --forc[e] origin main"
+expect_block_in "$tmp/gh" "git push origin main
+echo hi"
+expect_block_in "$tmp/gh" "git push origin main #
+git push --force origin main"
+# A brace or glob in the repository path expands into extra arguments, so a literal directory with that name must not help.
+mkdir "$tmp/gh/{.,push,--force,origin}"
+expect_block_in "$tmp/gh" "git -C {.,push,--force,origin} push main"
+expect_block_in "$tmp/gh" "cd {.,push,--force,origin} && git push main"
+expect_block_in "$tmp/gh" "git -C '$tmp/gh' push origin main"
+
+# Without jq, a Codex denial still has to reach Codex as a block.
+nojq="$tmp/nojq-bin"
+mkdir "$nojq" && ln -s "$(command -v cat)" "$nojq/cat"
+codex_output=$(printf '{"tool_input":{"command":"git push --force origin main"}}' | PATH="$nojq" "$guard" codex 2>/dev/null)
+if [[ "$codex_output" != *'"permissionDecision":"deny"'* ]]; then
+  printf 'FAIL expected a Codex deny without jq (output=%s)\n' "$codex_output"
+  failures=$((failures + 1))
+fi
 expect_block_in "$tmp/gh" "git push --delete origin old"
 expect_block_in "$tmp/gh" "git push -d origin old"
 expect_block_in "$tmp/gh" "git push --mirror origin"

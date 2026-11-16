@@ -9,7 +9,9 @@ block() {
   local reason=$1
 
   if [[ "$client" == "codex" ]]; then
-    jq -n --arg reason "$reason" '{
+    # Codex reads the decision from stdout and treats empty output as allow, so a missing jq
+    # must still print a deny.
+    jq -nc --arg reason "$reason" '{
       decision: "block",
       reason: $reason,
       hookSpecificOutput: {
@@ -17,7 +19,8 @@ block() {
         permissionDecision: "deny",
         permissionDecisionReason: $reason
       }
-    }'
+    }' 2>/dev/null ||
+      printf '%s\n' '{"decision":"block","reason":"the shell guard blocked this command (install jq to see why).","hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"the shell guard blocked this command (install jq to see why)."}}'
     exit 0
   fi
 
@@ -43,12 +46,19 @@ fi
 # still grade what git sends.
 # BASH_GUARD_NO_PUSH_HOSTS is an extended regex of hosts whose repositories take changes through
 # their own review tool, never a push. Unset, no host is review-only.
+# Push arguments and repository paths use an allowlist of characters: quotes, escapes, braces
+# and globs all rewrite the words before git sees them, so "--force" or {--force,origin} would
+# slip past the checks below. Only spaces and tabs separate words, so a newline cannot start a
+# second command.
 no_push_hosts=${BASH_GUARD_NO_PUSH_HOSTS:-}
 push_word="(^|[[:space:];|&()\"'\`])([^[:space:];|&()\"'\`]*/)?git([^;|&()]*)[[:space:]]push($segment_boundary|[\"'\`]|$)"
-plain_push='^[[:space:]]*(cd[[:space:]]+([^[:space:];|&()$`<>]+)[[:space:]]*&&[[:space:]]*)?git([[:space:]]+-C[[:space:]]+([^[:space:];|&()$`<>]+))?[[:space:]]+push(([[:space:]]+[^[:space:];|&()$`<>]+)*)[[:space:]]*$'
+blank=$' \t'
+path_word='~?[A-Za-z0-9._/@=+-]+'
+push_arg='[A-Za-z0-9._/:@=+^~-]+'
+plain_push="^[$blank]*(cd[$blank]+($path_word)[$blank]*&&[$blank]*)?git([$blank]+-C[$blank]+($path_word))?[$blank]+push(([$blank]+$push_arg)*)[$blank]*\$"
 
 push_dir() {
-  local base=$1 path=${2//[\"\']/}
+  local base=$1 path=$2
   [[ "$path" == "~" || "$path" == "~/"* ]] && path="$HOME${path:1}"
   if [[ "$path" == /* ]]; then printf '%s' "$path"; else printf '%s/%s' "$base" "$path"; fi
 }
@@ -61,7 +71,6 @@ if [[ "$command" =~ $push_word ]]; then
   c_path=${BASH_REMATCH[4]}
   read -r -a push_args <<<"${BASH_REMATCH[5]}"
   for arg in "${push_args[@]}"; do
-    [[ "$arg" == "#"* ]] && break
     case "$arg" in
       --*)
         name=${arg#--}
