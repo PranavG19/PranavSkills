@@ -103,6 +103,16 @@ mkdir "$tmp/gh/{.,push,--force,origin}"
 expect_block_in "$tmp/gh" "git -C {.,push,--force,origin} push main"
 expect_block_in "$tmp/gh" "cd {.,push,--force,origin} && git push main"
 expect_block_in "$tmp/gh" "git -C '$tmp/gh' push origin main"
+# The shell resolves ~+, ~-, ~user and a bare - to other directories, so the guard would read the wrong remotes.
+# Each decoy is a literal directory holding an allowed repository inside the review-only one.
+for decoy in '~+' '~-' '-' '~root'; do
+  git init -q "$tmp/review/$decoy" && git -C "$tmp/review/$decoy" remote add origin https://github.com/example/decoy.git
+done
+expect_block_in "$tmp/review" "git -C ~+ push origin main"
+expect_block_in "$tmp/review" "cd ~+ && git push origin main"
+expect_block_in "$tmp/review" "cd ~- && git push origin main"
+expect_block_in "$tmp/review" "cd - && git push origin main"
+expect_block_in "$tmp/review" "git -C ~root push origin main"
 
 # Without jq, a Codex denial still has to reach Codex as a block.
 nojq="$tmp/nojq-bin"

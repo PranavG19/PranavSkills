@@ -70,6 +70,13 @@ if [[ "$command" =~ $push_word ]]; then
   cd_path=${BASH_REMATCH[2]}
   c_path=${BASH_REMATCH[4]}
   read -r -a push_args <<<"${BASH_REMATCH[5]}"
+  # push_dir resolves only ~ and ~/..., so the shell's other tilde forms (~+, ~-, ~user) and a
+  # leading - (the previous directory) would make the guard read a different repository's remotes.
+  for path in "$cd_path" "$c_path"; do
+    if [[ -n "$path" && ! "$path" =~ ^(~|~/.*|[^~-].*)$ ]]; then
+      block "git push with repository path $path: use a plain path, ~ or ~/..., so the guard checks the repository the shell enters."
+    fi
+  done
   for arg in "${push_args[@]}"; do
     case "$arg" in
       --*)
