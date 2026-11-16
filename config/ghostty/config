@@ -1,0 +1,143 @@
+# =============================================================================
+# Ghostty - Catppuccin Mocha over frosted glass
+# Install: copy to ~/.config/ghostty/config
+#
+# Verified against Ghostty 1.3.1. Keys NOT used here because they are GTK-only
+# despite appearing in `+show-config --default`: window-titlebar-background,
+# window-titlebar-foreground, window-show-tab-bar, window-subtitle.
+# =============================================================================
+
+# --- Palette ---------------------------------------------------------------
+# Bundled theme, so all 16 ANSI colours are coherent instead of Ghostty's
+# defaults. MUST come first: later keys override, and we want our own
+# background, not Catppuccin's #1e1e2e.
+theme = Catppuccin Mocha
+
+# --- Frosted glass ---------------------------------------------------------
+# Real Gaussian blur (CGS). NOT macos-glass-*, which uses NSGlassEffectView
+# (Liquid Glass refraction) and produces transparency without frost.
+#
+# Raised 32 -> 56 to match VSCode. VSCode gets its blur from an
+# NSVisualEffectView `under-window` material, whose radius is far larger than
+# 32; at 32 the desktop came through as recognisable shapes rather than a
+# wash. A bigger radius samples a wider area, so what bleeds through is the
+# average colour of the wallpaper rather than its structure. That is what makes
+# the extra transparency below survivable.
+background-blur = 56
+
+# Lowered 0.90 -> 0.72 to match VSCode's level of see-through.
+#
+# Measured from the screenshot (means over flat, text-free regions):
+#   Ghostty  lum 29.0, spatial std 0.92
+#   VSCode   lum 44.6, spatial std 3.27
+# The 3.5x difference in std is the tell: at 0.90 only 10% of the desktop was
+# reaching the screen, so Ghostty read as a flat dark panel, not glass.
+# VSCode's stack is #1c1c20 at 0.25 alpha over a dark `under-window` material,
+# which passes roughly a third of the desktop through - hence 0.72 here.
+#
+# Solving displayed = a*bg + (1-a)*wallpaper against the measurement puts the
+# blurred desktop behind this window at about (19,38,48), i.e. lum 33 - already
+# close to #1c1c20's own 28. So dropping to 0.72 triples the bleed-through
+# while only moving the panel from lum 29 to about 30: much more glass, no
+# meaningful loss of contrast. (VSCode only LOOKS brighter because its tile
+# covers a brighter part of the wallpaper.)
+background-opacity = 0.72
+
+# Deep neutral tint, close to Apple's dark material. Overrides the theme's
+# #1e1e2e, which is too blue/light to sit text on. Same hex the VSCode
+# Vibrancy extension uses via vscode_vibrancy.backgroundOverride, so the two
+# windows read as the same material.
+background = #1c1c20
+
+# Force a minimum text/background contrast ratio. Nudged 1.1 -> 1.2 because a
+# third of the desktop now shows through, so the backdrop under any given
+# glyph varies more than it did at 0.90.
+minimum-contrast = 1.2
+
+# The single biggest text-quality win on a translucent background. Default
+# `native` blends in Display P3, which darkens the edges of glyphs and makes
+# them look muddy over blur. `linear` fixes that but thins dark text;
+# `linear-corrected` fixes it with no weight change. (Ghostty >= 1.1)
+alpha-blending = linear-corrected
+
+# NOT set: window-colorspace = display-p3. Catppuccin's hex values are authored
+# for sRGB, so reinterpreting them in P3 oversaturates a deliberately muted
+# palette.
+
+# --- Type ------------------------------------------------------------------
+# NOTE: the family is "...Nerd Font Mono", not "...Nerd Font".
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 14
+
+# Line spacing. The second biggest readability win on a translucent
+# background: rows stop merging into the desktop behind them.
+adjust-cell-height = 12%
+
+# Breathing room between glyphs. Pairs with the row spacing above so the grid
+# reads as a grid, not a block.
+adjust-cell-width = 2%
+
+# --- Window chrome ---------------------------------------------------------
+# Default padding is 2px, which jams text against the JankyBorders edge.
+window-padding-x = 20
+window-padding-y = 16
+
+# MUST stay false. With balance = true Ghostty re-centres the terminal grid in
+# the window, and the docs are explicit that the real padding per side then
+# "may not be equal to window-padding-x/y" - it spends the explicit padding as
+# centring slack. Under a tiling WM, where window sizes never land on clean
+# cell multiples, that means one side collapses to ~0 and text sits in the
+# corner. Uneven leftover space on the right/bottom is the lesser evil.
+window-padding-balance = false
+
+# When a full-screen TUI paints a background colour, extend it into the
+# padding instead of leaving a flat frame around it. Ghostty is careful enough
+# to skip this when the nearest row is the default background, so ordinary
+# shell output is unaffected.
+window-padding-color = extend
+
+# Tabs live in the titlebar and inherit the background colour, so there is no
+# opaque grey strip breaking the glass. This is the closest thing Ghostty has
+# to a status bar - there is no status bar option in 1.3.1.
+macos-titlebar-style = tabs
+
+# Traffic lights do nothing useful under a tiling WM, and three coloured dots
+# are the loudest thing on an otherwise monochrome window. Applies to NEW
+# windows only.
+macos-window-buttons = hidden
+
+# JankyBorders already draws the window edge with order=above. The macOS
+# shadow underneath it just smears the blur behind adjacent windows.
+macos-window-shadow = false
+
+# --- Noise removal ---------------------------------------------------------
+# No scrollbar gutter. Scrolling still works by wheel and keybind.
+scrollbar = never
+
+# Kill the "80x24" popup that flashes over the window on every AeroSpace
+# resize - which, in a tiling WM, is constantly.
+resize-overlay = never
+
+# Reopen with the same windows/splits after a restart.
+window-save-state = always
+
+# --- Splits ----------------------------------------------------------------
+# Default 0.7 is a heavy fade that fights the glass. 0.85 still reads as
+# "not focused" without looking broken.
+unfocused-split-opacity = 0.85
+split-divider-color = #45475a
+
+# --- Shell integration -----------------------------------------------------
+# Defaults are cursor,no-sudo,title,no-ssh-env,no-ssh-terminfo,path. Two of
+# those off-by-default features matter here:
+#   ssh-terminfo - installs Ghostty's terminfo on the remote host on first
+#     connect, which fixes the broken arrow keys / colours / clear you
+#     otherwise get on remote hosts that do not know xterm-ghostty.
+#   ssh-env      - propagates TERM/COLORTERM so remote TUIs see truecolor.
+#   sudo         - keeps TERMINFO working across sudo.
+shell-integration-features = cursor,sudo,title,path,ssh-env,ssh-terminfo
+
+# --- Cursor / mouse --------------------------------------------------------
+cursor-style = block
+cursor-style-blink = false
+mouse-hide-while-typing = true

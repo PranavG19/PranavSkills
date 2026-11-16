@@ -1,0 +1,338 @@
+# ============================================================================
+#  AeroSpace config
+#  Install to:  ~/.aerospace.toml   (or ~/.config/aerospace/aerospace.toml)
+#  Docs:        https://nikitabobko.github.io/AeroSpace/guide
+#  Reload:      aerospace reload-config          (or alt-shift-c)
+#  Validate:    aerospace reload-config --dry-run --warnings-as-errors
+#
+#  TOML gotcha: every top-level key MUST stay above the first [table] header,
+#  otherwise it silently becomes a child of that table.
+# ============================================================================
+
+config-version = 2
+
+start-at-login = true
+auto-reload-config = true
+
+# --- tree behaviour --------------------------------------------------------
+# Normalizations keep the window tree sane. Leave on unless you want raw i3.
+enable-normalization-flatten-containers = true
+enable-normalization-opposite-orientation-for-nested-containers = true
+
+default-root-container-layout = 'tiles'
+# 'auto': wide monitor -> side by side, tall/rotated monitor -> stacked.
+# This is what makes a portrait third monitor Just Work.
+default-root-container-orientation = 'auto'
+
+accordion-padding = 30
+
+# cmd-h otherwise hides windows into a limbo the tiler cannot see.
+automatically-unhide-macos-hidden-apps = true
+
+focus-follows-mouse.enabled = false
+key-mapping.preset = 'qwerty'
+
+# --- 12 workspaces: keys 1..9 0 - =  ->  names 1..9 10 11 12 ---------------
+# '-' cannot be a workspace NAME (AeroSpace rejects names starting with a
+# dash), and numeric names sort naturally, so a bar reads 1..12 in order.
+# Persistent = they exist even when empty, so the monitor assignment below
+# always applies and a status bar always has 12 slots to draw.
+persistent-workspaces = ['1','2','3','4','5','6','7','8','9','10','11','12']
+
+# --- gaps ------------------------------------------------------------------
+# Tighter on the laptop panel, roomier on externals. The trailing number is
+# the default when no monitor pattern matches.
+gaps.inner.horizontal = [{ monitor.'built-in' = 6 }, 10]
+gaps.inner.vertical   = [{ monitor.'built-in' = 6 }, 10]
+gaps.outer.left       = [{ monitor.'built-in' = 12 }, 20]
+gaps.outer.right      = [{ monitor.'built-in' = 12 }, 20]
+gaps.outer.bottom     = [{ monitor.'built-in' = 12 }, 20]
+# The external has no notch, and the macOS menu bar already eats ~24pt at the
+# top, so a full 20pt gap on top of that leaves the window sitting too low.
+# 4pt on the Samsung; the built-in keeps 12 because the notch makes its menu
+# bar taller and the panel is smaller.
+gaps.outer.top        = [{ monitor.'built-in' = 12 }, { monitor.'LF32TU87' = 4 }, 20]
+
+# --- callbacks -------------------------------------------------------------
+# Warp the pointer when focus lands on another display, so the next click and
+# the scroll wheel land where you are looking. Essential with 2-3 monitors.
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+# JankyBorders draws the focused-window border. An already running instance is
+# updated rather than duplicated, so this is safe on every AeroSpace restart.
+# All styling lives in ~/.config/borders/bordersrc, which avoids the /bin/bash -c
+# quoting traps that inline glow(0x...) args need. Tweak live with e.g.: borders width=8.0
+after-startup-command = [
+  'exec-and-forget borders',
+]
+
+# --- window rules ----------------------------------------------------------
+# `if` runs a command; exit 0 = match, and a match stops the list unless
+# check-further-callbacks = true. Order matters: float rules first.
+on-window-detected = [
+  # Simulators: float and park on 12 so they never show up during a screen share.
+  { if = 'test %{app-bundle-id} = com.apple.iphonesimulator',   run = ['layout floating', 'move-node-to-workspace 12'] },
+  { if = 'test %{app-bundle-id} = com.google.android.emulator', run = ['layout floating', 'move-node-to-workspace 12'] },
+  { if = 'test "%{app-name}" = qemu-system-aarch64',             run = ['layout floating', 'move-node-to-workspace 12'] },
+
+  # always float: settings panels, pickers, small utilities
+  { if = 'test %{app-bundle-id} = com.apple.systempreferences',           run = 'layout floating' },
+  { if = 'test %{app-bundle-id} = com.apple.finder',                     run = 'layout floating' },
+  { if = 'test %{app-bundle-id} = com.apple.ActivityMonitor',            run = 'layout floating' },
+  { if = 'test %{app-bundle-id} = com.apple.calculator',                 run = 'layout floating' },
+  { if = 'test %{app-bundle-id} = com.apple.ArchiveUtility',             run = 'layout floating' },
+  { if = 'test %{app-bundle-id} = cc.ffitch.shottr',                     run = 'layout floating' },
+  { if = 'test %{app-bundle-id} = com.pais.handy',                       run = 'layout floating' },
+  { if = 'test %{app-bundle-id} = com.displaylink.DisplayLinkUserAgent', run = 'layout floating' },
+  { if = 'test %{app-bundle-id} = com.microsoft.autoupdate2',            run = 'layout floating' },
+
+  # Video calls: float so grid/PiP windows stop fighting the tiler, and park
+  # them on 9 (a side display when you are docked).
+  { if = 'test %{app-bundle-id} = us.zoom.xos',             run = ['layout floating', 'move-node-to-workspace 9'] },
+
+  # --- sticky app placement; delete this block to place windows by hand ---
+  # 2 = browsers
+  { if = 'test %{app-bundle-id} = com.google.Chrome',         run = 'move-node-to-workspace 2' },
+  { if = 'test %{app-bundle-id} = app.zen-browser.zen',       run = 'move-node-to-workspace 2' },
+  { if = 'test %{app-bundle-id} = org.mozilla.firefox',       run = 'move-node-to-workspace 2' },
+  { if = 'test %{app-bundle-id} = com.apple.Safari',          run = 'move-node-to-workspace 2' },
+  # 3 = editors / IDEs
+  { if = 'test %{app-bundle-id} = dev.kiro.desktop',          run = 'move-node-to-workspace 3' },
+  { if = 'test %{app-bundle-id} = com.apple.dt.Xcode',        run = 'move-node-to-workspace 3' },
+  { if = 'test %{app-bundle-id} = com.google.android.studio', run = 'move-node-to-workspace 3' },
+  # 4 = notes / docs
+  { if = 'test %{app-bundle-id} = md.obsidian',               run = 'move-node-to-workspace 4' },
+  { if = 'test %{app-bundle-id} = com.quip.Desktop',          run = 'move-node-to-workspace 4' },
+  # 7 = chat
+  { if = 'test %{app-bundle-id} = com.tinyspeck.slackmacgap', run = 'move-node-to-workspace 7' },
+  { if = 'test %{app-bundle-id} = com.microsoft.teams2',      run = 'move-node-to-workspace 7' },
+  # 8 = mail / calendar
+  { if = 'test %{app-bundle-id} = com.microsoft.Outlook',     run = 'move-node-to-workspace 8' },
+]
+
+# ===========================================================================
+#  TABLES — nothing top-level may appear below this line
+# ===========================================================================
+
+# --- multi-monitor: one config that degrades cleanly 3 -> 2 -> 1 -----------
+# Patterns are tried left to right; the first that matches a CONNECTED monitor
+# wins, and if none match the workspace falls back to the main display.
+#   'main'      = System Settings > Displays > "Use as: Main display"
+#   'secondary' = the non-main monitor, ONLY when exactly 2 are connected
+#   '2' / '3'   = Nth monitor counting left to right by physical arrangement
+#
+#   3 displays -> 1-6 main | 7-9 middle (#2) | 10-12 right (#3)
+#   2 displays -> 1-6 main | 7-12 secondary
+#   1 display  -> everything on the laptop
+[workspace-to-monitor-force-assignment]
+# 1-6  -> the big external (primary work: browsers, editors, notes)
+# 7-12 -> the laptop panel  (chat, mail, calls, monitoring)
+#
+# Patterns are tried left to right; the first that matches a CONNECTED monitor
+# wins, and if none match the workspace falls back to the main display.
+#   'LF32TU87'  = the Samsung 4K, matched by name (case-insensitive substring)
+#   'secondary' = any single external, so a DIFFERENT monitor still gets 1-6
+#   'built-in'  = the laptop panel, and it matches whether or not it is "main",
+#                 which is why 7-12 need no other fallback
+#
+# Undocked, 'LF32TU87' and 'secondary' match nothing, so 1-6 fall back to 'main'
+# (the laptop) and all 12 workspaces live on the built-in display.
+1  = ['LF32TU87', 'secondary', 'main']
+2  = ['LF32TU87', 'secondary', 'main']
+3  = ['LF32TU87', 'secondary', 'main']
+4  = ['LF32TU87', 'secondary', 'main']
+5  = ['LF32TU87', 'secondary', 'main']
+6  = ['LF32TU87', 'secondary', 'main']
+7  = ['built-in', 'main']
+8  = ['built-in', 'main']
+9  = ['built-in', 'main']
+10 = ['built-in', 'main']
+11 = ['built-in', 'main']
+12 = ['built-in', 'main']
+
+# --- PATH for exec-and-forget (GUI apps do not inherit your shell PATH) ----
+[exec]
+inherit-env-vars = true
+
+[exec.env-vars]
+PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
+
+# ===========================================================================
+#  MAIN MODE
+# ===========================================================================
+[mode.main.binding]
+
+# --- launch ---------------------------------------------------------------
+# NOTE: no 'activate' here, deliberately. 'activate' brings Ghostty to the
+# front, which focuses its EXISTING window, which makes AeroSpace follow focus
+# to whatever workspace that window is on (usually 1) and open the new window
+# there. Without it, the new window opens on the current workspace and still
+# takes keyboard focus. Same reason 'open -a Ghostty' is the wrong tool here.
+alt-enter = '''exec-and-forget osascript -e '
+tell application "Ghostty"
+    new window
+end tell'
+'''
+
+# --- focus windows (wraps ACROSS monitors: h/l walks your whole desk) -----
+alt-h = 'focus --boundaries all-monitors-outer-frame --boundaries-action wrap-around-all-monitors left'
+alt-j = 'focus --boundaries all-monitors-outer-frame --boundaries-action wrap-around-all-monitors down'
+alt-k = 'focus --boundaries all-monitors-outer-frame --boundaries-action wrap-around-all-monitors up'
+alt-l = 'focus --boundaries all-monitors-outer-frame --boundaries-action wrap-around-all-monitors right'
+
+# Cycle windows in tree order. Handy inside accordions.
+alt-n = 'focus dfs-next --boundaries-action wrap-around-the-workspace'
+alt-p = 'focus dfs-prev --boundaries-action wrap-around-the-workspace'
+
+# --- move windows within the workspace ------------------------------------
+alt-shift-h = 'move left'
+alt-shift-j = 'move down'
+alt-shift-k = 'move up'
+alt-shift-l = 'move right'
+
+# --- swap windows in place (focus stays where it is) ----------------------
+alt-ctrl-shift-j = 'swap --wrap-around dfs-next'
+alt-ctrl-shift-k = 'swap --wrap-around dfs-prev'
+
+# --- monitors -------------------------------------------------------------
+alt-ctrl-h = 'focus-monitor --wrap-around left'
+alt-ctrl-j = 'focus-monitor --wrap-around down'
+alt-ctrl-k = 'focus-monitor --wrap-around up'
+alt-ctrl-l = 'focus-monitor --wrap-around right'
+
+# Throw the focused window to the next/prev display and follow it
+alt-ctrl-shift-h = 'move-node-to-monitor --wrap-around --focus-follows-window left'
+alt-ctrl-shift-l = 'move-node-to-monitor --wrap-around --focus-follows-window right'
+
+# Drag the whole workspace to another display
+alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
+
+# --- workspaces: keys 1..9 0 - = -----------------------------------------
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
+alt-0 = 'workspace 10'
+alt-minus = 'workspace 11'
+alt-equal = 'workspace 12'
+
+alt-shift-1 = 'move-node-to-workspace 1  --focus-follows-window'
+alt-shift-2 = 'move-node-to-workspace 2  --focus-follows-window'
+alt-shift-3 = 'move-node-to-workspace 3  --focus-follows-window'
+alt-shift-4 = 'move-node-to-workspace 4  --focus-follows-window'
+alt-shift-5 = 'move-node-to-workspace 5  --focus-follows-window'
+alt-shift-6 = 'move-node-to-workspace 6  --focus-follows-window'
+alt-shift-7 = 'move-node-to-workspace 7  --focus-follows-window'
+alt-shift-8 = 'move-node-to-workspace 8  --focus-follows-window'
+alt-shift-9 = 'move-node-to-workspace 9  --focus-follows-window'
+alt-shift-0 = 'move-node-to-workspace 10 --focus-follows-window'
+alt-shift-minus = 'move-node-to-workspace 11 --focus-follows-window'
+alt-shift-equal = 'move-node-to-workspace 12 --focus-follows-window'
+
+# Walk the workspace list
+alt-leftSquareBracket  = 'workspace --wrap-around prev'
+alt-rightSquareBracket = 'workspace --wrap-around next'
+alt-shift-leftSquareBracket  = 'move-node-to-workspace --wrap-around prev --focus-follows-window'
+alt-shift-rightSquareBracket = 'move-node-to-workspace --wrap-around next --focus-follows-window'
+
+# Last workspace / last window
+alt-tab = 'workspace-back-and-forth'
+alt-backtick = 'focus-back-and-forth'
+
+# Yank a workspace onto the display you are looking at, ignoring its forced
+# assignment. Good when you undock and want chat (7) on the laptop.
+alt-shift-a = 'summon-workspace 7'
+alt-shift-g = 'summon-workspace 2'
+
+# --- layout ---------------------------------------------------------------
+alt-slash = 'layout tiles horizontal vertical'     # toggle split direction
+alt-comma = 'layout accordion horizontal vertical'
+alt-e     = 'layout tiles horizontal vertical'     # i3 muscle memory
+alt-s     = 'layout v_accordion'                   # i3 "stacking"
+alt-w     = 'layout h_accordion'                   # i3 "tabbed"
+alt-shift-space = 'layout floating tiling'         # toggle float
+alt-f = 'fullscreen'
+alt-shift-f = 'macos-native-fullscreen'
+alt-b = 'balance-sizes'
+
+# NOTE: the 'split' command is deliberately NOT used. AeroSpace refuses to load
+# a config that combines 'split' with enable-normalization-flatten-containers,
+# and recommends 'join-with' instead (see the join mode on alt-g below).
+# alt-slash above already flips the current container's orientation, which is
+# what you actually wanted 'split' for.
+
+# Group the focused window with a neighbour: alt-g then h/j/k/l
+alt-g = 'mode join'
+
+# --- resize ---------------------------------------------------------------
+alt-r = 'mode resize'
+
+# --- window --------------------------------------------------------------
+alt-shift-q = 'close'
+alt-m = 'macos-native-minimize'
+
+# --- meta ----------------------------------------------------------------
+alt-shift-c = 'reload-config'
+alt-shift-semicolon = 'mode service'
+
+# Kill macOS "Hide application": it makes windows vanish from the tiler.
+cmd-h = []
+cmd-alt-h = []
+
+# ===========================================================================
+#  RESIZE MODE   (alt-r, then hjkl or -/= ; esc or enter to leave)
+# ===========================================================================
+[mode.resize.binding]
+h = 'resize width -50'
+j = 'resize height +50'
+k = 'resize height -50'
+l = 'resize width +50'
+minus = 'resize smart -50'
+equal = 'resize smart +50'
+shift-h = 'resize width -150'
+shift-j = 'resize height +150'
+shift-k = 'resize height -150'
+shift-l = 'resize width +150'
+b = ['balance-sizes', 'mode main']
+esc = 'mode main'
+enter = 'mode main'
+
+# ===========================================================================
+#  JOIN MODE   (alt-g, then a direction; replaces the 'split' command)
+#  Puts the focused window and its neighbour under one parent container, which
+#  is how you build nested/stacked layouts with normalizations left enabled.
+# ===========================================================================
+[mode.join.binding]
+h = ['join-with left', 'mode main']
+j = ['join-with down', 'mode main']
+k = ['join-with up', 'mode main']
+l = ['join-with right', 'mode main']
+esc = 'mode main'
+enter = 'mode main'
+
+# ===========================================================================
+#  SERVICE MODE   (alt-shift-; then a key)
+# ===========================================================================
+[mode.service.binding]
+esc = ['reload-config', 'mode main']
+r = ['flatten-workspace-tree', 'mode main']        # reset this workspace's layout
+f = ['layout floating tiling', 'mode main']
+b = ['balance-sizes', 'mode main']
+backspace = ['close-all-windows-but-current', 'mode main']
+d = ['enable toggle', 'mode main']                 # pause/resume tiling entirely
+
+# Merge the focused window into the neighbour's container
+alt-shift-h = ['join-with left', 'mode main']
+alt-shift-j = ['join-with down', 'mode main']
+alt-shift-k = ['join-with up', 'mode main']
+alt-shift-l = ['join-with right', 'mode main']
+
+# Volume
+minus = 'volume down'
+equal = 'volume up'
+0 = ['volume mute-toggle', 'mode main']
