@@ -6,11 +6,12 @@ import { readFileSync, readdirSync, existsSync, lstatSync, realpathSync, statSyn
 import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
+import { contextFile } from "./context.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const ALLOWED = new Set(["name", "description", "disable-model-invocation", "argument-hint"]);
-const MAX_DESC_WORDS = 40;
-const MAX_TOTAL_DESC_WORDS = 730; // model-invoked descriptions load every session; soft ceiling with headroom for the gap-skills + show-me batch (baseline was 500 words across 16 model-invoked skills, now ~713 across ~20)
+const MAX_DESC_WORDS = 60;
+const MAX_TOTAL_DESC_WORDS = 1000; // model-invoked descriptions load every session; raised from 730 when five user-only skills became model-invoked and the measured misses got longer triggers
 const MAX_BODY_LINES = 120;
 const expand = (p) => (p.startsWith("~") ? join(homedir(), p.slice(1)) : p);
 const isLink = (p) => { try { return lstatSync(p).isSymbolicLink(); } catch { return false; } };
@@ -34,6 +35,7 @@ function parseFrontmatter(text) {
 
 // --- skills ---
 let count = 0;
+const skills = new Map();
 let modelInvokedDescWords = 0;
 for (const bucket of readdirSync(join(ROOT, "skills"))) {
   if (bucket.startsWith("_") || bucket.startsWith(".")) continue;
@@ -62,10 +64,11 @@ for (const bucket of readdirSync(join(ROOT, "skills"))) {
     if (words > MAX_DESC_WORDS) fail(where, `description is ${words} words (max ${MAX_DESC_WORDS}) — it is summarizing, not triggering`);
 
     const userInvoked = fm.keys["disable-model-invocation"] === "true";
+    skills.set(skill, { where, userInvoked, body: fm.body, dir: join(bucketPath, skill) });
     if (!userInvoked) modelInvokedDescWords += words;
     if (userInvoked && /\bUse when\b/i.test(fm.keys.description ?? ""))
       fail(where, "user-invoked skill keeps a trigger list; a human reads this description");
-    if (!userInvoked && !/\bUse (when|before)\b/i.test(fm.keys.description ?? ""))
+    if (!userInvoked && !/\bUse (when|whenever|before|as soon as)\b/i.test(fm.keys.description ?? ""))
       warn(where, "model-invoked skill has no explicit trigger clause");
 
     const bodyLines = fm.body.split("\n").length;
@@ -88,6 +91,27 @@ for (const bucket of readdirSync(join(ROOT, "skills"))) {
     const proseBody = fm.body.replace(/```[\s\S]*?```/g, "");
     if (/[—–]/.test(proseBody) || /[—–]/.test(fm.keys.description ?? ""))
       fail(where, "em-dash or en-dash present; Write plainly bans them (use periods, commas, or parentheses)");
+  }
+}
+
+// --- invocation: flags, Codex policy, and cross-skill call wording ---
+const allNames = [...skills.keys()].sort((a, b) => b.length - a.length).map((n) => n.replace(/[-]/g, "\\-"));
+const bareCall = new RegExp(`\\b(invoke|use|run)\\s+(the\\s+)?\\*{0,2}\`(${allNames.join("|")})\``, "gi");
+const toolCall = new RegExp(`Skill tool with \\*{0,2}\`(${allNames.join("|")})\``, "g");
+for (const [name, s] of skills) {
+  // Codex ignores disable-model-invocation; only the sidecar policy hides a skill there.
+  const yaml = join(s.dir, "agents", "openai.yaml");
+  const hidden = existsSync(yaml) && /allow_implicit_invocation:\s*false/.test(readFileSync(yaml, "utf8"));
+  if (s.userInvoked && !hidden) fail(s.where, "user-invoked but agents/openai.yaml lacks policy.allow_implicit_invocation: false, so Codex still auto-loads it");
+  if (!s.userInvoked && hidden) fail(s.where, "model-invoked but agents/openai.yaml hides it from Codex");
+  const prose = s.body.replace(/```[\s\S]*?```/g, "");
+  for (const line of prose.split("\n")) {
+    for (const m of line.matchAll(bareCall)) {
+      if (m[3] !== name && !/Skill tool/.test(line)) fail(s.where, `"${m[0]}" calls a skill without naming the Skill tool; write "call the Skill tool with \`${m[3]}\`"`);
+    }
+    for (const m of line.matchAll(toolCall)) {
+      if (skills.get(m[1])?.userInvoked) fail(s.where, `calls user-invoked \`${m[1]}\` through the Skill tool; write "tell the user to run \`/${m[1]}\`"`);
+    }
   }
 }
 
@@ -121,6 +145,12 @@ for (const f of readdirSync(join(ROOT, "profiles")).filter((f) => f.endsWith(".j
       const m = toml.match(new RegExp(`\\[plugins\\."${plugin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"\\][^\\[]*?enabled\\s*=\\s*true`));
       if (m) fail(f, `config.toml still enables ${plugin}; re-render`);
     }
+  }
+  // Inlined context copies go stale until the next render; Claude imports go stale if the list changes.
+  const ctx = contextFile(p, ROOT, target);
+  if (ctx && existsSync(target)) {
+    const have = existsSync(ctx.path) ? readFileSync(ctx.path, "utf8") : null;
+    if (have !== ctx.body) fail(f, `${ctx.path} does not match the rendered context; re-render`);
   }
   if (!p.buckets.length) continue;
   const skillsDir = join(target, "skills");

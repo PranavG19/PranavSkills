@@ -1,0 +1,6 @@
+interface:
+  display_name: "Video Explainer"
+  short_description: "Narrated MP4 explainer of a system, change, or plan"
+  default_prompt: "Use $video-explainer to make a narrated explainer video of this."
+policy:
+  allow_implicit_invocation: false

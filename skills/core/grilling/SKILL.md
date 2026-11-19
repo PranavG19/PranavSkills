@@ -32,7 +32,7 @@ Generic prompts ("did you consider security?") produce generic specs; depth come
 - Who can create / update / delete it, the same actor as reader, or different? Client-allowed or server-only?
 - When two users share visibility (a feed, a group), what's the *exact* rule, and is it one-way or mutual opt-in?
 - What's the trust boundary? What does the client decide vs. the server enforce? What happens if the client lies?
-- *Where* is each rule enforced? Can the wrong thing be made **unrepresentable** (DB-engine RLS, a type, framework deny-by-default, a permission the code simply doesn't hold), or is it only *detected* by a test? Push for structural; settle for detection only when structural is genuinely impossible. To settle *where* the rule lives, invoke the `agent-arch` skill.
+- *Where* is each rule enforced? Can the wrong thing be made **unrepresentable** (DB-engine RLS, a type, framework deny-by-default, a permission the code simply doesn't hold), or is it only *detected* by a test? Push for structural; settle for detection only when structural is genuinely impossible. To settle *where* the rule lives, call the Skill tool with `agent-arch`.
 - What input is attacker-controlled, and where's the injection/abuse surface? What's logged vs. redacted?
 
 **Reversibility & blast radius (for anything touching data, infra, money, credentials, contracts, other systems)**
@@ -63,7 +63,7 @@ Generic prompts ("did you consider security?") produce generic specs; depth come
 
 ## Hand off to `spec`
 When the design tree is resolved, including every mandatory concern the artifact touches:
-1. Invoke **`spec`**. Pick the template (feature / data-model / api-contract / system), write up the decisions, run its **completeness gate**. `grilling` decides; `spec` documents.
+1. Call the Skill tool with **`spec`**. Pick the template (feature / data-model / api-contract / system), write up the decisions, run its **completeness gate**. `grilling` decides; `spec` documents.
 2. `spec`'s gate surfaces an unresolved item → a **gap to bring back here**; keep interviewing, don't let `spec` guess.
 3. **Offer an ADR** only for a decision that's hard-to-reverse AND surprising AND a real trade-off (all three, `ADR-FORMAT.md`). Don't manufacture them.
 

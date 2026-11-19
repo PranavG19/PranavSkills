@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Prove a behavioral claim with a signal you did not author. Use when implementing logic that touches money, auth, or data, before declaring a correctness claim done, or when a green test suite needs to mean something.
+description: Prove a behavioral claim with a signal you did not author. Use before you say done, fixed, works or verified about logic that touches money, auth, user data, a migration or an irreversible operation, and whenever a passing test suite is the only evidence.
 ---
 
 `verify → name the claim → find an oracle the implementation cannot reach → red-first → grade by an independent signal → report what is verified vs merely self-consistent`

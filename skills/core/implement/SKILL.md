@@ -5,22 +5,22 @@ description: Implement exactly one local ticket through a red-green-refactor loo
 
 `fresh context -> claim one ticket -> red -> green -> refactor -> affected checks -> review`
 
-1. **Select one ticket.** Invoke `to-tickets` to list ready work. Claim exactly one ticket before
+1. **Select one ticket.** Call the Skill tool with `to-tickets` to list ready work. Claim exactly one ticket before
    editing; an existing claim by another owner is a stop signal.
 2. **Load only its packet.** Read the ticket, its referenced spec sections, named code exemplars,
    and direct dependency outputs. Do not load the entire planning history.
-3. **Classify the action.** Invoke `triage`. An irreversible ticket remains human-gated; an `afk`
+3. **Classify the action.** Call the Skill tool with `triage`. An irreversible ticket remains human-gated; an `afk`
    label never overrides that classification.
-4. **Isolate the write.** Invoke `worktree` for unattended or parallel work. Confirm this ticket
+4. **Isolate the write.** Call the Skill tool with `worktree` for unattended or parallel work. Confirm this ticket
    has one owner for every file, symbol, lockfile, and migration it may touch.
-5. **Build through `tdd`.** Take one acceptance criterion at a time through its pre-agreed public
+5. **Build through `tdd`.** Call the Skill tool with `tdd`, then take one acceptance criterion at a time through its pre-agreed public
    seam: prove red, reach minimal green, refactor while green, then repeat. Tests are part of this
    ticket, never deferred to another ticket.
 6. **Run checks incrementally.** Execute focused tests after each cycle and the affected typecheck
    regularly. Run the ticket's affected lint/integration checks, then the repository's full
    required suite once at the end. Preserve exit codes and record skipped checks honestly.
-7. **Prove critical claims.** Invoke `verify` for money, authentication, data, subtle invariants,
-   or any claim whose expected value came from the implementation itself. Invoke `browser` for an
+7. **Prove critical claims.** Call the Skill tool with `verify` for money, authentication, data, subtle invariants,
+   or any claim whose expected value came from the implementation itself. Call the Skill tool with `browser` for an
    observable UI acceptance criterion. A test you wrote and graded green is not proof of the thing
    it tests; if you judge a claim non-critical and skip `verify`, record that skip and its reason in
    the ticket.

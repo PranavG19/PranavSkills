@@ -24,7 +24,7 @@ bundled `scripts/tickets.mjs` derives board state and serializes claims.
    swap touching many call sites cannot be one green vertical slice. Sequence it expand, migrate,
    contract. One additive, N/N-1-compatible ticket ships the new shape beside the old,
    independently-shippable tickets migrate the callers, and a final human-gated ticket removes the
-   old shape. Each step is its own reversible ticket. Classify it via `triage`, and let `spec`'s
+   old shape. Each step is its own reversible ticket. Classify it by calling the Skill tool with `triage`, and let `spec`'s
    reversibility gate define the sequence.
 5. **Build the DAG.** Keep tickets within one fresh context. Set `depends-on` only for real
    prerequisites, `mode: afk` only when the ticket is reversible and has a deterministic check,

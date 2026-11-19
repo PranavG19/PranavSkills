@@ -1,7 +1,6 @@
 ---
 name: commit
-description: Stage and commit the current work cleanly, scoped, conventionally messaged, not pushed.
-disable-model-invocation: true
+description: Stage and commit the current work cleanly, scoped, conventionally messaged, not pushed. Use when the user asks to commit, save, or check in work.
 ---
 
 ## Steps

@@ -59,7 +59,7 @@ For the irreversible class specifically, the shape is a **separate, gated path**
 ## Step 4. Route
 
 - **Reversible + bounded blast radius** → proceed autonomously. Ship small and often; reversibility plus an outside-in abort signal (canary / edge SLI) self-corrects a bad change in minutes, *safer* than batching into a big gated deploy.
-- **Reversible + large/cross-system blast radius** → name the single fact its safety rests on ("safe because X") and hand that claim to `verify` to prove, add a canary, and name the affected services. An unproven "safe because" is a guess, not a classification.
+- **Reversible + large/cross-system blast radius** → name the single fact its safety rests on ("safe because X") and call the Skill tool with `verify` to prove that claim, add a canary, and name the affected services. An unproven "safe because" is a guess, not a classification.
 - **Irreversible** → STOP. Produce the evidence packet (what, blast radius, backup status, the exact destructive statement) and request human sign-off. Make the reversible part shippable separately (expand now, contract later behind a human gate). On a destructive action, correctness outranks speed.
 
 ## Constraints

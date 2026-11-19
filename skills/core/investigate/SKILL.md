@@ -1,6 +1,6 @@
 ---
 name: investigate
-description: Disciplined diagnosis for hard bugs and performance regressions. Use when a bug, test failure, crash, or perf regression has a cause that isn't immediately clear; skip typos and one-liners.
+description: Diagnosis loop for a failure with an unknown cause. Use as soon as a command, test, build, deploy or page fails and the first error does not show why, before a second retry or a guessed fix, and for oncall or "why is this broken or slow" requests. Skip typos and one-line fixes.
 ---
 
 `investigate → build feedback loop → reproduce → 3-5 ranked falsifiable hypotheses → instrument (one variable) → fix + regression test → cleanup + post-mortem`
@@ -18,7 +18,7 @@ Ways to build one, in rough order of preference:
 1. Failing test at whatever seam reaches the bug.
 2. curl / HTTP script against a running dev server.
 3. CLI invocation with a fixture, diffing stdout vs known-good.
-4. Headless browser script (use the `browser` skill) asserting on DOM/console/network.
+4. Headless browser script (call the Skill tool with `browser`) asserting on DOM/console/network.
 5. Replay a captured trace/payload through the code path in isolation.
 6. Throwaway harness, a minimal subset of the system, one function call.
 7. Property/fuzz loop for "sometimes wrong" bugs.

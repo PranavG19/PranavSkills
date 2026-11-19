@@ -42,6 +42,6 @@ description: Review one implemented ticket from a fresh context against its acce
    it to `done` only after its branch is integrated and the project gate remains green. Human QA
    may add follow-up tickets; it does not silently expand this one.
 
-Use `critiquing` only for an additional multi-angle panel. The two review axes above are mandatory
+Call the Skill tool with `critiquing` only for an additional multi-angle panel. The two review axes above are mandatory
 and narrower: did we build the right thing, and did we build it correctly for this repository?
 Reviewing a diff with no local ticket is `diff-review`'s job, not this skill's.

@@ -54,4 +54,4 @@ routing. For the installed version, `cmux --help` and `cmux docs <topic>` are au
 - Read from the exact surface that received the command.
 - Use bounded waits or event cursors; endless polling is not supervision.
 - Keep browser/device evidence with the project ticket, not only in terminal scrollback.
-- `cmux` operates surfaces. Use `supervise` for multi-project scheduling and policy.
+- `cmux` operates surfaces. For multi-project scheduling and policy, tell the user to run `/supervise`.

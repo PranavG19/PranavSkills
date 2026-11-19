@@ -14,8 +14,8 @@ observes; each project orchestrator owns its own `orchestrate` pipeline and loca
    thread-local QA, also record the T3 thread, preview-tab, device-host, and device IDs. Existing
    workspaces and threads win over duplicates.
 2. **Assign one project orchestrator.** Launch or resume one durable agent session per project
-   through `cmux`. Give it the project root, objective, current artifact, and instruction to use
-   `orchestrate`. Before sending, read the addressed surface and confirm it is idle at the expected
+   through `cmux`. Give it the project root, objective, current artifact, and an instruction to run
+   `/orchestrate`. Before sending, read the addressed surface and confirm it is idle at the expected
    agent prompt in the expected project. The portfolio supervisor does not implement tickets.
 3. **Schedule the frontier.** Ask each orchestrator for validated ready tickets. Run only tickets
    whose dependencies are done and expected writes do not overlap. Parallelism is bounded by the
@@ -30,7 +30,7 @@ observes; each project orchestrator owns its own `orchestrate` pipeline and loca
 6. **Enforce evidence.** A ticket reaches review only with its focused red/green history, affected
    checks, and risk-selected `verify` evidence. UI/device tickets include screenshots or
    recordings, interaction results, and the exact T3 or cmux surface and device identity used.
-7. **Review independently.** Start `ticket-review` in a fresh context. A worker never approves its
+7. **Review independently.** Start a fresh-context session that calls the Skill tool with `ticket-review`. A worker never approves its
    own ticket. Send requested changes back to the same ticket and owner.
 8. **Integrate serially.** Land approved branches through one project integration owner in
    dependency order. After each integration, run the affected guard checks; after the frontier
@@ -53,7 +53,7 @@ observes; each project orchestrator owns its own `orchestrate` pipeline and loca
 - Stalled agent: read the exact surface, identify the missing context, capability, feedback,
   authority, or evidence, then supply that one thing or mark the ticket blocked.
 - Conflicting workers: stop the later claimant, preserve both worktrees, and return ownership to
-  one integration agent. Resolve the actual merge conflict with `resolving-merge-conflicts`.
+  one integration agent. Resolve the actual merge conflict by calling the Skill tool with `resolving-merge-conflicts`.
 - Failing integration: classify whether the branch, ordering, or shared contract caused it; reopen
   the smallest responsible ticket.
 

@@ -1,7 +1,6 @@
 ---
 name: show-me
-description: Explains structure, control flow, a refactor, or a change with the smallest fitting visual (pseudocode, a call/file/component tree, Mermaid, a shape-matched diff, or one focused HTML artifact) beside one line of text.
-disable-model-invocation: true
+description: Explains structure, control flow, a refactor, or a change with the smallest fitting visual (pseudocode, a call/file/component tree, Mermaid, a shape-matched diff, or one focused HTML artifact) beside one line of text. Use when the user asks how something is structured or flows, or says "show me".
 ---
 
 `show-me → pick the smallest visual that answers the question → put it beside one line of text → stop when the point lands`

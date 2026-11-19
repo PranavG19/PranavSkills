@@ -43,20 +43,37 @@ refactor opportunity, mention it and leave it alone.
 When something fails, first decide what kind of failure it is:
 
 - If the cause is unknown, capture the complete command, stdout, stderr, and exit code. Retry the
-  same command once at most, then use `investigate`.
+  same command once at most, then treat it as an unknown cause (see Skills below).
 - If the target is understood but the work is unfinished, pick a cheap measurement such as a
   failing test, error count, or exact match count. Improve that number each pass while keeping one
   guard metric from getting worse.
 
 When progress stalls, identify what is actually missing before adding more effort. It is usually
 one of five things: context, a capability we cannot operate, a feedback loop, authority to act, or
-evidence that tells us whether the result is right. Use `investigate` for an unknown cause,
-`grilling` followed by `spec` for an unresolved reversible design, and `verify` before calling
-work involving money, authentication, data, or an irreversible operation correct.
+evidence that tells us whether the result is right.
 
 Let long commands finish and preserve their real exit codes. Save noisy output before filtering
 it; piping a build or test suite directly into `head` can hide the failure. Lock in each small win
 before moving on. If a step cannot be measured cheaply, split it until it can.
+
+## Skills
+
+A skill is a procedure to run, not a document to consult. When a task matches a skill's
+description, call the Skill tool with its name before any other tool call. In a harness with no
+Skill tool, read its SKILL.md. A brief that says "follow this exactly" still gets the matching
+skill.
+
+- `diff-review` when asked to review a diff, PR, CR, patch or commit range.
+- `investigate` when a failure has no visible cause after one retry.
+- `verify` before calling work on money, auth, data or an irreversible operation correct.
+- `recall` when a name, service, team or acronym is unfamiliar.
+- `grilling`, then `spec`, when a design has two or more reasonable paths.
+
+When you write a brief for a sub-agent, name the skill in its first line ("Call the Skill tool
+with `diff-review`, then review ..."). The sub-agent sees only the brief.
+
+An agent may judge taste (layout, copy, "wow") for two rounds. After that, show me the variants
+side by side and stop.
 
 ## Be honest about the result
 
@@ -80,8 +97,9 @@ prose. Structural colons in YAML frontmatter, `file:line` references, and list h
 
 If a sentence would read unchanged in any other project's writeup, it says nothing here, so cut it.
 
-Before writing a doc, apply the rules in `memory/preference/writing-lessons.md`. When I or a
-reviewer reject wording, add the lesson there in the same turn.
+Before writing a doc, apply the doc rules in `memory/preference/style.md` and read the rejected
+examples in `memory/preference/writing-lessons.md`. When I or a reviewer reject wording, add the
+lesson there in the same turn.
 
 ## Match the codebase
 

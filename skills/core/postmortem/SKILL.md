@@ -1,7 +1,6 @@
 ---
 name: postmortem
-description: Drafts an incident postmortem, RCA, or retro from a confirmed root cause. Impact, timeline, five-whys, and corrective actions placed on the structural-over-detection ladder.
-disable-model-invocation: true
+description: Drafts an incident postmortem, RCA, or retro from a confirmed root cause, with impact, timeline, five-whys, and corrective actions on the structural-over-detection ladder. Use when the user asks for a postmortem, RCA, or incident writeup.
 ---
 
 `postmortem → confirm the root cause first → quantify impact by scope → timeline → five-whys → corrective actions on the structural ladder`
@@ -12,7 +11,7 @@ This is distinct from `investigate` Phase 6, which is a personal "what would hav
 
 ## Step 1. Require a confirmed root cause
 
-Do not draft from a hypothesis. If the cause is not yet proven, run `investigate` first and come back with the reproduction and the mechanism. A postmortem is only as honest as the cause it names, and "we think it was X" in an org record is worse than no record.
+Do not draft from a hypothesis. If the cause is not yet proven, call the Skill tool with `investigate` first and come back with the reproduction and the mechanism. A postmortem is only as honest as the cause it names, and "we think it was X" in an org record is worse than no record.
 
 ## Step 2. Quantify impact by scope, not line count
 
@@ -40,6 +39,6 @@ An action that lands only on rung 4 or 5 leaves the failure fully able to recur.
 
 ## Constraints
 
-- No draft without a confirmed root cause. Invoke `investigate` first when the cause is unproven.
+- No draft without a confirmed root cause. Call the Skill tool with `investigate` first when the cause is unproven.
 - Impact is measured in customer and system terms, never in lines of code.
 - A postmortem whose only corrective actions are "add an alarm" and "be careful" has not corrected anything. Push at least one action up the ladder.

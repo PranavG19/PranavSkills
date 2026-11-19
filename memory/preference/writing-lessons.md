@@ -1,21 +1,10 @@
 # writing lessons
 
-Read before writing any doc, description, or summary. When Pranav or a reviewer rejects
-wording, add one entry under Lessons in the same turn: the rejected text, why it failed, a
-better version, and the rule. Fold a repeat into its existing rule instead of adding a new one.
-
-## Rules
-
-1. **Open on the fact, not on us.** The first sentence states what happened, with the number.
-   Not "Today we learn", "We propose", or "This doc describes".
-2. **One claim per sentence.** No semicolon splicing two claims.
-3. **Strongest evidence first.** The number that makes the case leads; it does not trail.
-4. **Name the event.** Never "the last break" or "the issue" as if the reader was there. Say
-   what broke, who found it, and how long it took.
-5. **Every sentence names who acts.** No verb left without a subject after an opening clause.
-   Move asides out of commas into parentheses or their own sentence. Fewer words, plain words,
-   but not choppy: keep sentences that flow, join short ones that share a subject, and never
-   drop a fact, number, condition or link to save words.
+Read before writing any doc, description, or summary. The standing rules live in
+`style.md` under "Doc rules". This file holds the rejected examples behind them. When Pranav or a
+reviewer rejects wording, add one entry under Lessons in the same turn: the rejected text, why
+it failed, a better version, and the rule. Fold a repeat into its existing rule. Add a new rule
+to `style.md` only when the same lesson recurs in a second doc.
 
 ## Lessons
 

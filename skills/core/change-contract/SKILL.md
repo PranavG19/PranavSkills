@@ -1,7 +1,6 @@
 ---
 name: change-contract
-description: Freezes a scoped, unticketed fix's success criterion, non-goals, and diff budget before the first edit, then reuses it as the CR/PR description. Whole features are spec's job.
-disable-model-invocation: true
+description: Freezes a scoped, unticketed fix's success criterion, non-goals, and diff budget before the first edit, then reuses it as the CR/PR description. Use when starting a single scoped fix that ships on its own without a ticket. Whole features are spec's job.
 ---
 
 `change-contract → freeze the requirement card → stamp the artifact epoch → build inside the budget → render the submission writeup`
@@ -28,7 +27,7 @@ Record the exact tree the contract was written against, so a later reviewer know
 
 ## Build, then render the writeup
 
-Build inside the budget. Classify the change with `triage` first, and prove the success criterion with `verify`. When the diff is ready, the frozen card renders directly into the submission writeup.
+Build inside the budget. Call the Skill tool with `triage` first to classify the change, then call the Skill tool with `verify` to prove the success criterion. When the diff is ready, the frozen card renders directly into the submission writeup.
 
 - **What changed** and why, traceable to the success criterion.
 - **What was left alone**, from the non-goals.

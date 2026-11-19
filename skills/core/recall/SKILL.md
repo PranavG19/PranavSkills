@@ -35,7 +35,7 @@ answer.
 |---|---|---|
 | **Hit** | A page answers the question | Read it, follow the links that bear on the task |
 | **Miss** | The right domain exists, the page does not | Research it and write the page. See below |
-| **No such domain** | Nothing in the vault covers this subject at all | Say so plainly, then use `web` or general knowledge |
+| **No such domain** | Nothing in the vault covers this subject at all | Say so plainly, then call the Skill tool with `web` or use general knowledge |
 
 A page carrying `status: stub` in its frontmatter names something real but holds no research. That is
 a **miss**, not a hit.
@@ -77,7 +77,7 @@ a **miss**, not a hit.
 known filler, so fill it rather than guessing or silently falling back to general knowledge.
 
 1. **Find the ground truth.** For an internal subject that means the
-   organization's own search, code search, wiki and deployment tools. For anything public, use `web`. Dispatch a subagent for this, because
+   organization's own search, code search, wiki and deployment tools. For anything public, call the Skill tool with `web`. Dispatch a subagent for this, because
    research reads far more than the answer needs.
 
 2. **Write the page in the shape that domain's `INDEX.md` specifies**, with frontmatter carrying

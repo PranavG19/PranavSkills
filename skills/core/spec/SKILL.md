@@ -21,7 +21,7 @@ A section that can't be filled from the source is an **open question**. Surface 
 
 ## How to use it
 
-1. **Establish the decision source** (above). Unresolved and needing interactive teasing-out → run `grilling` first; otherwise proceed.
+1. **Establish the decision source** (above). Unresolved and needing interactive teasing-out → call the Skill tool with `grilling` first; otherwise proceed.
 2. **Pick the template** from `skills/_shared/spec-templates/`:
    - `feature.md` for a product feature / capability.
    - `data-model.md` for a database schema or data layer.
@@ -90,7 +90,7 @@ Each item is either resolved in the doc or explicitly marked out-of-scope **with
 
 - [ ] Names follow the project's existing conventions, checked rather than assumed. Discriminators: enum (closed/rare) vs. text (open/grows) decided per field, with reasoning.
 
-Any mandatory box that can't be checked **blocks** the spec on that decision. Resolve it from the conversation, from code, or via `grilling` when it needs interactive teasing-out.
+Any mandatory box that can't be checked **blocks** the spec on that decision. Resolve it from the conversation, from code, or by calling the Skill tool with `grilling` when it needs interactive teasing-out.
 
 ## After the spec is done
 

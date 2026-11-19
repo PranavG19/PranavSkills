@@ -14,8 +14,7 @@
   ],
   "context": [
     "AGENTS.md",
-    "memory/preference/style.md",
-    "memory/preference/writing-lessons.md"
+    "memory/preference/style.md"
   ],
   "hooks": []
 }

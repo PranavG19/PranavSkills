@@ -1,13 +1,13 @@
 ---
 name: diff-review
-description: Read-only blocker review of a diff you don't own, repo standards plus the change's own claims. Use when reviewing a CR/PR/patch with no local ticket, or asked to adversarially refute a change's claims.
+description: Read-only blocker review of a diff, PR, CR, patch or commit range. Use whenever you are asked to review, approve, judge or refute a code change, including as a review sub-agent whose brief names a diff, even when the brief does not mention a skill. A local ticket goes to ticket-review.
 ---
 
 `diff-review → pin the diff and its claims → read-only → refute the claims → report blockers with file:line → verdict`
 
 You are reviewing a change you did not write and there is no local ticket to anchor it. The trap is trusting the author's summary, the author's green, and the author's framing of what the change does. **A review that restates the author's claims has verified nothing. The signal is in what the author did not mention and what their own claims fail to survive.** Read the diff, refute its claims, and report only what would block.
 
-This is the sibling of `ticket-review`. `ticket-review` pins a local ticket and moves its state through the board. This skill reviews an external diff (CR, PR, patch) that has no ticket, so it owns nothing and changes no state. Use `critiquing` only for an extra multi-angle panel; this is the narrower, read-only blocker pass.
+This is the sibling of `ticket-review`. `ticket-review` pins a local ticket and moves its state through the board. This skill reviews an external diff (CR, PR, patch) that has no ticket, so it owns nothing and changes no state. Call the Skill tool with `critiquing` only for an extra multi-angle panel; this is the narrower, read-only blocker pass.
 
 ## Step 1. Pin the diff and its claims
 

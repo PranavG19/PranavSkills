@@ -1,0 +1,6 @@
+interface:
+  display_name: "Orchestrate"
+  short_description: "Move one project through shaping, tickets, build, review and QA"
+  default_prompt: "Use $orchestrate to move this work through its next pipeline stage."
+policy:
+  allow_implicit_invocation: false

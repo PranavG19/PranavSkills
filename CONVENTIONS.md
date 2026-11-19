@@ -41,7 +41,8 @@ Rules:
 - **One trigger per branch.** Synonyms that rename a single branch are one branch written twice.
 - **Cut identity the body already carries.** Provenance ("distilled from a 40-axis research
   program"), disambiguation from sibling skills, and mechanism all belong in the body.
-- **Under 40 words.** Over that, it is a summary.
+- **Under 60 words.** Over that, it is a summary. Spend the extra words on the situations where
+  the skill was measured to miss, such as a sub-agent brief that never names it.
 
 ## Invocation is the organizing axis
 
@@ -61,12 +62,15 @@ Thin user-invoked wrappers over thick model-invoked primitives are the intended 
   legwork than "produce a change list", though both are clear. Sharpen the bound first, since that
   is local and cheap. Split the work across a context boundary only when the bound is irreducibly
   fuzzy and the rush to finish persists.
-- Express a dependency as an instruction to invoke the named skill. One skill per call; a step
-  needing two skills is two calls. Never deep-link `../other-skill/FILE.md`.
+- Express a dependency as "Call the Skill tool with `<name>`", one skill per call; a step needing
+  two skills is two calls. When the target is user-invoked, write "tell the user to run
+  `/<name>`" instead. Never deep-link `../other-skill/FILE.md`.
 
 ## Write harness-neutral
 
-The same file is read by Claude Code and Codex. Never name a harness-specific artifact:
+The same file is read by Claude Code and Codex. Never name a harness-specific artifact. The one
+exception is the Skill tool: naming it is what makes a cross-skill call fire, and a harness with no
+Skill tool reads the named skill's SKILL.md instead.
 
 | Instead of | Write |
 |---|---|
@@ -106,6 +110,12 @@ runs reach. A skill over ~120 lines is usually one that skipped this.
 
 Bulk reference material is not a skill. It goes in `knowledge/<domain>/` with an `INDEX.md`,
 reached by a router skill that owns the domain.
+
+## Change a skill only for an observed failure
+
+A new skill, a rewritten description, or a new step needs a failure seen in a real session: a
+missed or false trigger in the history, a review comment, a wrong result. A hypothetical
+improvement is not enough. Name the session or the measurement in the commit message.
 
 ## Retiring a skill
 
